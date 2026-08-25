@@ -20,6 +20,7 @@
                 </label>
             </div>
 
+            <!-- type of concern -->
             <div class="form-check">
                 <input class="form-check-input" 
                     type="radio" 
