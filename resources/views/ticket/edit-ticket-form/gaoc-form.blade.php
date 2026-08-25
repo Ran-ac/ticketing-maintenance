@@ -115,7 +115,7 @@
             @enderror
         </div>
 
-            <!-- Email -->
+            <!-- Email Address -->
     <div class="mb-6">
         <label for="title" class="form-label">Email<span class="text-danger">*</span></label>
         <input type="email" name="email" id="email" value="{{ $ticket->email }}"class="form-control">   
