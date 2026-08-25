@@ -2,25 +2,27 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MyTaskController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ClinicsController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
 
     // Ticket routes
     Route::prefix('ticket')->as('ticket.')->group(function () {
-        // /admin/ticket && admin.ticket
+
+
+        // fetch all data 
+        Route::get('/dashboard', [DashboardController::class, 'TicketingDashboard'])->middleware(['auth', 'verified'])->name('TicketingDashboard');
+
 
         //viewing of template for ticketing 
         Route::get('/ticket-form/gaoc-form-ticket', [TicketController::class, 'createGAOC'])->name('gaoc');
@@ -32,7 +34,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/index-clinics', [TicketController::class, 'index_clinics'])->name('index_clinics');
 
         Route::get('/index-offices', [TicketController::class, 'index_offices'])->name('index_offices');
-
 
         Route::get('/fetchClinicalTicketData', [TicketController::class, 'fetchClinicalTicketData'])->name('fetchClinicalTicketData');
 
@@ -110,10 +111,7 @@ Route::middleware('auth')->group(function () {
     });
 
 
-
 });
-
-Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
-
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
 require __DIR__.'/auth.php';

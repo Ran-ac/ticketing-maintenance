@@ -422,8 +422,8 @@ columns: [
                         html = '<span class="badge bg-secondary">Unassigned</span>';
                     }
 
-                    // Add assign button only for superadmin
-                    if (isSuperAdmin) {
+                    // Add assign button only for superadmin, and only if not Done
+                    if (isSuperAdmin && row.status !== 'Done') {
                         html += `<button 
                                     class="btn btn-primary assignBtn py-0 px-2 btn-sm ms-2"
                                     data-id="${row.id}"
@@ -457,6 +457,10 @@ columns: [
                 data: "id",
                 orderable: false,
                 render: function(data, type, row) {
+
+                    if(userRole === "Maintenance"){
+                        return '';
+                    }
 
                     // Done ticket
                     if (row.status === 'Done') {

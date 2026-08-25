@@ -55,7 +55,7 @@ class TicketController extends Controller
         
 
     // Non-superadmin: show tickets from their own clinic, OR tickets they created themselves
-    if ($user->role !== 'superadmin') {
+    if (!in_array($user->role, ['superadmin', 'Maintenance'])) {
         $query->where(function ($q) use ($user) {
             $q->where('ticket.clinics_id', $user->clinics_id)
             ->orWhere('ticket.reported_by', $user->id);
@@ -420,10 +420,11 @@ public function updateStatus(Request $request, $id)
 
 public function update(Request $request)
 {
+
     try {
         $request->validate([
             'type_of_concern' => 'required|string|max:255',
-            'clinics_id' => 'nullable|exists:clinics,id',
+            'branch_id' => 'nullable|exists:clinics,id',
             'equipment_or_machine' => 'required|string|max:255',
             'equipment_or_machine_brand' => 'required|string|max:255',
             'serial_number' => 'required|string|max:255',
@@ -452,7 +453,7 @@ public function update(Request $request)
     // Update the ticket, only changing fields if new values are present
     $ticket->update([
         'type_of_concern' => $request->type_of_concern,
-        'clinics_id' => $request->clinics_id,
+        'clinics_id' => $request->branch_id,
         'equipment_or_machine' => $request->equipment_or_machine,
         'equipment_or_machine_brand' => $request->equipment_or_machine_brand,
         'serial_number' => $request->serial_number,
