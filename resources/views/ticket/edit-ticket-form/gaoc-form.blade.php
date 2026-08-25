@@ -124,6 +124,7 @@
         @enderror
     </div>
 
+        <!-- Status -->
     <div class="mb-3">
         <label for="status" class="form-label">
             Status <span class="text-danger">*</span>
