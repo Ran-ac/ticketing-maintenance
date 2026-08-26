@@ -20,6 +20,7 @@
                 </label>
             </div>
 
+            <!-- type of concern -->
             <div class="form-check">
                 <input class="form-check-input" 
                     type="radio" 
@@ -115,7 +116,7 @@
             @enderror
         </div>
 
-            <!-- Email -->
+            <!-- Email Address -->
     <div class="mb-6">
         <label for="title" class="form-label">Email<span class="text-danger">*</span></label>
         <input type="email" name="email" id="email" value="{{ $ticket->email }}"class="form-control">   
@@ -124,6 +125,7 @@
         @enderror
     </div>
 
+        <!-- Status -->
     <div class="mb-3">
         <label for="status" class="form-label">
             Status <span class="text-danger">*</span>
