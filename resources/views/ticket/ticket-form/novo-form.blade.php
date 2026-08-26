@@ -5,7 +5,7 @@
         </div>
         <div>
             <h4 class="text-white fw-bold mb-0">Create Ticket</h4>
-            <small class="text-white opacity-75">Novodental - Maintenance IR Form</small>
+            <small class="text-white opacity-75">GAOC - Maintenance IR Form</small>
         </div>
     </div>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -30,23 +30,6 @@
             </label>
         </div>
         @error('type_of_concern')
-            <div class="alert alert-danger mt-2">{{ $message }}</div>
-        @enderror
-    </div>
-
-    <!-- Branch -->
-    <div class="mb-3">
-        <label for="branch_id" class="form-label fw-semibold">Branch <span class="text-danger">*</span></label>
-        <select class="form-select" name="branch_id" id="branch_id">
-            <option value="">Please select branch</option>
-            @foreach ($clinic as $clinics)
-                <option value="{{ $clinics->id }}"
-                    {{ old('branch_id', $ticket->branch_id ?? '') == $clinics->id ? 'selected' : '' }}>
-                    {{ $clinics->name }}
-                </option>
-            @endforeach
-        </select>
-        @error('branch_id')
             <div class="alert alert-danger mt-2">{{ $message }}</div>
         @enderror
     </div>
@@ -87,16 +70,7 @@
             <div class="alert alert-danger mt-2">{{ $message }}</div>
         @enderror
     </div>
-
-    <!-- Email -->
-    <div class="mb-3">
-        <label for="email" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-        <input type="email" name="email" id="email" class="form-control">
-        @error('email')
-            <div class="alert alert-danger mt-2">{{ $message }}</div>
-        @enderror
-    </div>
-
+    
     <!-- File -->
     <div class="mb-3">
         <label for="file" class="form-label fw-semibold">File <span class="text-muted fw-normal">(optional)</span></label>

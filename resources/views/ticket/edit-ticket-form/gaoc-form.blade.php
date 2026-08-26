@@ -124,6 +124,23 @@
         @enderror
     </div>
 
+    <div class="mb-3">
+        <label for="status" class="form-label">
+            Status <span class="text-danger">*</span>
+        </label>
+
+        <select class="form-control" name="status" id="status">
+            <option value="">Please select status</option>
+            <option value="Pending" {{ old('status', $ticket->status) == 'Pending' ? 'selected' : '' }}>Pending</option>
+            <option value="Cancelled" {{ old('status', $ticket->status) == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+            <option value="Done" {{ old('status', $ticket->status) == 'Done' ? 'selected' : '' }}>Done</option>
+        </select>
+
+        @error('status')
+            <div class="alert alert-danger mt-2">{{ $message }}</div>
+        @enderror
+    </div>
+
     
     <!-- File -->
     <div class="mb-6">
@@ -201,7 +218,7 @@ function previewFile(event) {
             contentType: false,
 
             success: function(response){
-                alert('Ticket added successfully!');
+                alert('Ticket updated successfully!');
                 $('#formModalCreate').modal('hide');
             },
 
