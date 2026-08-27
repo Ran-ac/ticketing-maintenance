@@ -74,6 +74,7 @@ class TicketController extends Controller
                     ->orWhere('ticket.type_equipment_or_machine', 'like', "%{$searchValue}%")
                     ->orWhere('ticket.equipment_or_machine_brand', 'like', "%{$searchValue}%")
                     ->orWhere('ticket.concern_description', 'like', "%{$searchValue}%")
+                    ->orWhere('ticket.serial_number', 'like', "%{$searchValue}%")
                     ->orWhere('reporter.name', 'like', "%{$searchValue}%")
                     ->orWhere('clinics.name', 'like', "%{$searchValue}%");
             });
