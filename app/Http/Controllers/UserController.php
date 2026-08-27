@@ -82,8 +82,8 @@ class UserController extends Controller
     {
         $users = User::all();
         $clinic = Clinics::all();
-
         $department = Department::all();
+
 
         return view('users.create',compact('users','department','clinic'));
     }
@@ -102,6 +102,8 @@ class UserController extends Controller
             'role' => 'required',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+         $clinic = Clinics::findOrFail($request->branch);
 
         // Create the user
         $users = User::create([

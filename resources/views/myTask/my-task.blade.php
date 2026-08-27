@@ -428,6 +428,15 @@ $(document).ready(function () {
                         `;
                     }
 
+                    // For Approval is final — no dropdown
+                    if (data === 'For Approved') {
+                        return `
+                            <button class="btn ${buttonClass} btn-sm" type="button" disabled>
+                                ${data}
+                            </button>
+                        `;
+                    }
+
                     // On hold -> can only go back to Pending
                     if (data === 'On hold') {
                         return `
@@ -469,6 +478,7 @@ $(document).ready(function () {
                     `;
                 }
             },
+            
             { data: "reported_name",name: "reported_by" },
             { data: "email",name: "email" },
             {
