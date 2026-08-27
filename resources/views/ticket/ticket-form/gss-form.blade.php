@@ -15,22 +15,7 @@
 <form id="create_ticket" method="POST" action="{{ route('ticket.store') }}" enctype="multipart/form-data">
     @csrf
 
-    <!-- Branch -->
-    <div class="mb-3">
-        <label for="branch_id" class="form-label fw-semibold">Branch <span class="text-danger">*</span></label>
-        <select class="form-select" name="branch_id" id="branch_id">
-            <option value="">Please select branch</option>
-            @foreach ($clinic as $clinics)
-                <option value="{{ $clinics->id }}"
-                    {{ old('branch_id', $ticket->branch_id ?? '') == $clinics->id ? 'selected' : '' }}>
-                    {{ $clinics->name }}
-                </option>
-            @endforeach
-        </select>
-        @error('branch_id')
-            <div class="alert alert-danger mt-2">{{ $message }}</div>
-        @enderror
-    </div>
+
 
     <!-- Equipment or machine -->
     <div class="mb-3">
@@ -68,16 +53,7 @@
             <div class="alert alert-danger mt-2">{{ $message }}</div>
         @enderror
     </div>
-
-    <!-- Email -->
-    <div class="mb-3">
-        <label for="email" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-        <input type="email" name="email" id="email" class="form-control">
-        @error('email')
-            <div class="alert alert-danger mt-2">{{ $message }}</div>
-        @enderror
-    </div>
-
+    
     <!-- File -->
     <div class="mb-3">
         <label for="file" class="form-label fw-semibold">File <span class="text-muted fw-normal">(optional)</span></label>

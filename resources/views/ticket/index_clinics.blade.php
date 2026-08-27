@@ -19,7 +19,8 @@
 
     <!-- Custom styles for this template-->
     <link href="{{ asset('css/sb-admin-2.min.css') }}" rel="stylesheet">
-	
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
 	<!-- DataTables CDN -->
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
@@ -33,13 +34,14 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
 </head>
- 
-<body id="page-top">
 
-    <!-- Page Wrapper --> 
+
+
+<body id="page-top">
+    <!-- Page Wrapper -->
     <div id="wrapper">
         <!-- Sidebar -->
             @include('partials.sidebar')
@@ -53,7 +55,7 @@
                     <!-- Topbar -->
                     @include('partials.navbar')
                     <!-- End of Topbar -->
-        
+
                 <main>
                     <div class="container-fluid">
                         <h1 class="mt-4">Tickets</h1>
@@ -68,7 +70,7 @@
                         </div>
                         <div class="card mb-4">
                             <div class="card-body">
-                                <div class="table-responsive">
+                                <div class="table-responsive" >
                                     <table class="table table-striped table-hover" id="ticketTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
@@ -80,9 +82,9 @@
                                             <th>Equipment or machine brand</th>
                                             <th>Serial number</th>
                                             <th>Concern description</th>
-                                            <th>Status</th>    
-                                            <th>Reported by</th>                                     
-                                            <th>Email</th>                                           
+                                            <th>Status</th>
+                                            <th>Reported by</th>
+                                            <th>Email</th>
                                             <th>Assigned by</th>
                                             <th>Created at</th>
                                             <th>File</th>
@@ -94,10 +96,10 @@
                                             <!--table populate here -->
                                         </tbody>
                                     </table>
-                                </div> 
+                                </div>
                             </div>
-                        </div> 
-                    </div> 
+                        </div>
+                    </div>
                 </main>
             </div>
             <!-- Footer -->
@@ -188,7 +190,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Assign Modal -->
     <div class="modal fade" id="assignModal" tabindex="-1">
         <div class="modal-dialog">
@@ -197,10 +198,10 @@
                     <h5 class="modal-title">Assign Users</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                
+
                 <div class="modal-body">
                     <input type="hidden" id="ticket_id">
-                    
+
                     <label for="assigned_user" class="form-label">Select Users</label>
                     <select id="assigned_user" class="form-select" multiple placeholder="Search users...">
                         @foreach($users as $user)
@@ -208,7 +209,7 @@
                         @endforeach
                     </select>
                 </div>
-                
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-success" id="saveAssign">Save</button>
@@ -217,7 +218,7 @@
         </div>
     </div>
 
-            
+
         <!-- Bootstrap core JavaScript-->
 
         <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
@@ -236,8 +237,8 @@
         <script src="{{ asset('js/demo/chart-area-demo.js') }}"></script>
         <script src="{{ asset('js/demo/chart-pie-demo.js') }}"></script>
 		<script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
-    
-		
+
+
 		<!-- jQuery -->
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 		<!-- DataTables JS -->
@@ -255,10 +256,10 @@ const isSuperAdmin = @json(auth()->user()->role === 'superadmin');
 const userRole = @json(auth()->user()->role);
 
 $(document).ready(function() {
-    
+
     // Initialize Tom Select
     let tomSelect = null;
-    
+
     $('#assignModal').on('show.bs.modal', function() {
         if (!tomSelect) {
             tomSelect = new TomSelect('#assigned_user', {
@@ -292,7 +293,7 @@ $(document).ready(function() {
         let assignedUsers = $('#assigned_user').val();
 
         alert(assignedUsers);
-        
+
 
         if (!ticketId || !assignedUsers || assignedUsers.length === 0) {
             alert('Please select ticket and at least one user');
@@ -312,7 +313,7 @@ $(document).ready(function() {
                     alert('Users assigned successfully!');
                     $('#assignModal').modal('hide');
                     $('#assigned_user').val(null).trigger('change');
-                    
+
                     $('#ticketTable').DataTable().ajax.reload();
                 }
             },
@@ -368,139 +369,140 @@ $(document).ready(function () {
         let table = $("#ticketTable").DataTable({
             processing: true,
             serverSide: true,
+            scrollX: true,
             ajax: "{{ route('ticket.fetchClinicalTicketData') }}",
-columns: [
-            { data: "id",          name: "id" },
-            { data: "ticket_type", name: "ticket_type",
-                render: function(data) {
-                    const colors = {
-                        'GAOC - Maintenance IR Form':       'primary',
-                        'Novodental - Maintenance IR Form': 'success',
-                        'GSS - Maintenance IR Form':        'warning',
-                        'GGC Offices - Maintenance IR Form':'info',
-                    };
-                    const color = colors[data] || 'secondary';
-                    return `<span class="badge bg-${color}">${data}</span>`;
-                }
-            },
-            { data: "type_of_concern",       name: "type_of_concern" },
-            { data: "branch",       name: "branch" },
-            { data: "type_equipment_or_machine",       name: "type_equipment_or_machine" },
-            { data: "equipment_or_machine_brand",       name: "equipment_or_machine_brand" },
-            { data: "serial_number",       name: "serial_number" },
-            { data: "concern_description",       name: "concern_description" },
-
-            { data: "status", name: "status",
-                render: function(data) {
-                    const map = {
-                        'New':      'text-info',
-                        'On hold':  'text-muted',
-                        'On pause': 'text-primary',
-                        'For continuation': 'text-warning',
-                        'Done':     'text-success',
-                        'Pending':  'text-secondary',
-                    };
-                    return `<span class="${map[data] ?? ''}">${data}</span>`;
-                }
-            },
-            { data: "reported_name",name: "reported_by" },
-            { data: "email",name: "email" },
-            // { data: "remarks",name: "remarks" },
-            {
-                data: "assignees",
-                name: "assignees",
-                orderable: false,
-                render: function(data, type, row) {
-                    let html = '';
-
-                    // Show assigned users as badges
-                    if (data && data.length > 0) {
-                        data.forEach(user => {
-                            html += `<span class="badge bg-success">${user.name}</span> `;
-                        });
-                    } else {
-                        html = '<span class="badge bg-secondary">Unassigned</span>';
+            columns: [
+                { data: "id",          name: "id" },
+                { data: "ticket_type", name: "ticket_type",
+                    render: function(data) {
+                        const colors = {
+                            'GAOC - Maintenance IR Form':       'primary',
+                            'Novodental - Maintenance IR Form': 'success',
+                            'GSS - Maintenance IR Form':        'warning',X
+                            'GGC Offices - Maintenance IR Form':'info',
+                        };
+                        const color = colors[data] || 'secondary';
+                        return `<span class="badge bg-${color}">${data}</span>`;
                     }
+                },
+                { data: "type_of_concern",       name: "type_of_concern" },
+                { data: "branch",       name: "branch" },
+                { data: "type_equipment_or_machine",       name: "type_equipment_or_machine" },
+                { data: "equipment_or_machine_brand",       name: "equipment_or_machine_brand" },
+                { data: "serial_number",       name: "serial_number" },
+                { data: "concern_description",       name: "concern_description" },
 
-                    // Add assign button only for superadmin, and only if not Done
-                    if (isSuperAdmin && row.status !== 'Done') {
-                        html += `<button 
-                                    class="btn btn-primary assignBtn py-0 px-2 btn-sm ms-2"
-                                    data-id="${row.id}"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#assignModal">
-                                    Add
-                                </button>`;
+                { data: "status", name: "status",
+                    render: function(data) {
+                        const map = {
+                            'New':      'text-info',
+                            'On hold':  'text-muted',
+                            'On pause': 'text-primary',
+                            'For continuation': 'text-warning',
+                            'Done':     'text-success',
+                            'Pending':  'text-secondary',
+                        };
+                        return `<span class="${map[data] ?? ''}">${data}</span>`;
                     }
+                },
+                { data: "reported_name",name: "reported_by" },
+                { data: "email",name: "email" },
+                // { data: "remarks",name: "remarks" },
+                {
+                    data: "assignees",
+                    name: "assignees",
+                    orderable: false,
+                    render: function(data, type, row) {
+                        let html = '';
 
-                    return html;
-                }
-            },
-            { data: "created_at",    name: "created_at",
-                render: function(data) {
-                    return new Date(data).toLocaleString('en-US', {
-                        month: 'long', day: '2-digit', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit', hour12: true
-                    });
-                }
-            },
-            { data: "file", name: "file",
-                render: function(data) {
-                    if (!data) return '<span class="text-muted">No file</span>';
-                    return `<img src="/storage/${data}" width="50" height="50"
-                                style="object-fit:cover; border-radius:5px; cursor:pointer;"
-                                class="view-image" data-image="/storage/${data}">`;
-                }
-            },
-            { data: "remarks",       name: "remarks" },
-            {
-                data: "id",
-                orderable: false,
-                render: function(data, type, row) {
-
-                    if(userRole === "Maintenance"){
-                        return '';
-                    }
-
-                    // Done ticket
-                    if (row.status === 'Done') {
-                        return `<div class="text-success">
-                                    <small>Resolved by ${row.resolved_by ?? '—'}</small>
-                                </div>`;
-                    }
-
-                    // FDO: show Done button only when status is For Approved
-                    if (userRole === 'fdo') {
-
-                        if (row.status === 'For Approved') {
-                            return `
-                                <button class="btn btn-sm btn-success updateStatusBtn"
-                                        data-id="${data}"
-                                        data-status="Done">
-                                    Done
-                                </button>
-                            `;
+                        // Show assigned users as badges
+                        if (data && data.length > 0) {
+                            data.forEach(user => {
+                                html += `<span class="badge bg-success">${user.name}</span> `;
+                            });
+                        } else {
+                            html = '<span class="badge bg-secondary">Unassigned</span>';
                         }
 
-                        // Otherwise, no actions for FDO
-                        return '';
-                    }
+                        // Add assign button only for superadmin, and only if not Done
+                        if (isSuperAdmin && row.status !== 'Done') {
+                            html += `<button
+                                        class="btn btn-primary assignBtn py-0 px-2 btn-sm ms-2"
+                                        data-id="${row.id}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#assignModal">
+                                        Add
+                                    </button>`;
+                        }
 
-                    // Other roles: Edit/Delete
-                    return `
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-info openEditModal" data-id="${data}">
-                                Edit
-                            </button>
-                            <button class="btn btn-sm btn-danger deleteTicket" data-id="${data}">
-                                Delete
-                            </button>
-                        </div>
-                    `;
+                        return html;
+                    }
+                },
+                { data: "created_at",    name: "created_at",
+                    render: function(data) {
+                        return new Date(data).toLocaleString('en-US', {
+                            month: 'long', day: '2-digit', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit', hour12: true
+                        });
+                    }
+                },
+                { data: "file", name: "file",
+                    render: function(data) {
+                        if (!data) return '<span class="text-muted">No file</span>';
+                        return `<img src="/storage/${data}" width="50" height="50"
+                                    style="object-fit:cover; border-radius:5px; cursor:pointer;"
+                                    class="view-image" data-image="/storage/${data}">`;
+                    }
+                },
+                { data: "remarks",       name: "remarks" },
+                {
+                    data: "id",
+                    orderable: false,
+                    render: function(data, type, row) {
+
+                        if(userRole === "Maintenance"){
+                            return '';
+                        }
+
+                        // Done ticket
+                        if (row.status === 'Done') {
+                            return `<div class="text-success">
+                                        <small>Resolved by ${row.resolved_by ?? '—'}</small>
+                                    </div>`;
+                        }
+
+                        // FDO: show Done button only when status is For Approved
+                        if (userRole === 'fdo') {
+
+                            if (row.status === 'For Approved') {
+                                return `
+                                    <button class="btn btn-sm btn-success updateStatusBtn"
+                                            data-id="${data}"
+                                            data-status="Done">
+                                        Done
+                                    </button>
+                                `;
+                            }
+
+                            // Otherwise, no actions for FDO
+                            return '';
+                        }
+
+                        // Other roles: Edit/Delete
+                        return `
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-info openEditModal" data-id="${data}">
+                                    Edit
+                                </button>
+                                <button class="btn btn-sm btn-danger deleteTicket" data-id="${data}">
+                                    Delete
+                                </button>
+                            </div>
+                        `;
+                    }
                 }
-            }
-        ]
-        });
+            ]
+    });
 
         $(document).on('click', '.updateStatusBtn', function () {
 
@@ -528,8 +530,6 @@ columns: [
             });
 
         });
-
-
 
         $(document).on('click', '.openEditModal', function (event) {
 			event.preventDefault();

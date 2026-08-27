@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'TicketingDashboard'])->middleware(['auth', 'verified'])->name('TicketingDashboard');
 
 
-        //viewing of template for ticketing 
+        //viewing of template for ticketing XX
         Route::get('/ticket-form/gaoc-form-ticket', [TicketController::class, 'createGAOC'])->name('gaoc');
         Route::get('/ticket-form/novo-form-ticket', [TicketController::class, 'createNOVO'])->name('novo');
 
