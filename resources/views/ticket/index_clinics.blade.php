@@ -19,7 +19,6 @@
 
     <!-- Custom styles for this template-->
     <link href="{{ asset('css/sb-admin-2.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
 	<!-- DataTables CDN -->
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -378,7 +377,7 @@ $(document).ready(function () {
                         const colors = {
                             'GAOC - Maintenance IR Form':       'primary',
                             'Novodental - Maintenance IR Form': 'success',
-                            'GSS - Maintenance IR Form':        'warning',X
+                            'GSS - Maintenance IR Form':        'warning',
                             'GGC Offices - Maintenance IR Form':'info',
                         };
                         const color = colors[data] || 'secondary';
