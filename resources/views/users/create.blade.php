@@ -78,7 +78,7 @@
                 <option value="admin">Admin</option>
                 <option value="IT">IT</option>
                 <option value="Maintenance">Maintenance</option>
-                <option value="Fdo">FDO</option>
+                <option value="fdo">FDO</option>
             </select>
             @error('role')
                 <div class="alert alert-danger mt-2">{{ $message }}</div>

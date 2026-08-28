@@ -23,6 +23,14 @@ class DashboardController extends Controller
         $pendingCount    = Ticket::where('status', 'Pending')->count();
         $cancelledCount  = Ticket::where('status', 'Cancelled')->count();
 
+        $branchConcerns = Ticket::selectRaw('clinics.name as clinic_name, count(ticket.id) as total')
+        ->join('clinics', 'ticket.clinics_id', '=', 'clinics.id')
+        ->groupBy('clinics.id', 'clinics.name')
+        ->get();
+
+        $branchLabels = $branchConcerns->pluck('clinic_name');
+        $branchData   = $branchConcerns->pluck('total');
+
         return view('dashboard', compact(
             'clinic',
             'user',
@@ -30,9 +38,13 @@ class DashboardController extends Controller
             'onHoldCount',
             'doneCount',
             'pendingCount',
-            'cancelledCount'
+            'cancelledCount',
+            'branchLabels',
+            'branchData'
         ));
     }
+
+
 
     public function index()
     {
