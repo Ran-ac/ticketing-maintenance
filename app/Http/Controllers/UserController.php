@@ -110,7 +110,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'contact_number' => $request->contact_number,
-            'branch' => $clinic->name,
+            'branch' => $clinic->id,
             'address' => $request->address,
             'role' => $request->role,
             'password' => Hash::make($request->password),
