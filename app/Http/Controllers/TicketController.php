@@ -14,110 +14,107 @@ use Illuminate\Support\Facades\Auth;
 class TicketController extends Controller
 {
 
-    public function fetchClinicalTicketData(Request $request)
-    {
-        $columns = [
-            'ticket.id',
-            'ticket.type_of_concern',
-            'branch',
-            'ticket.type_equipment_or_machine',
-            'ticket.equipment_or_machine_brand',
-            'ticket.serial_number',
-            'ticket.concern_description',
-            'ticket.reported_by',
-            'ticket.email',
-            'ticket.status',
-            'ticket.file',
-            'ticket.created_at'
-        ];
+public function fetchClinicalTicketData(Request $request)
+{
+    $columns = [
+        'ticket.id',
+        'ticket.type_of_concern',
+        'branch',
+        'ticket.type_equipment_or_machine',
+        'ticket.equipment_or_machine_brand',
+        'ticket.serial_number',
+        'ticket.concern_description',
+        'ticket.reported_by',
+        'ticket.email',
+        'ticket.status',
+        'ticket.file',
+        'ticket.created_at',
+    ];
 
-        $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'asc');
-        $searchValue = $request->input('search.value', '');
-        $perPage = $request->input('length', 5);
-        $start = $request->input('start', 0);
+    $orderColumnIndex = (int) $request->input('order.0.column', 0);
+    $orderDir = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
+    $searchValue = trim((string) $request->input('search.value', ''));
+    $perPage = max(1, (int) $request->input('length', 5));
+    $start = max(0, (int) $request->input('start', 0));
 
-        $user = auth()->user();
+    $user = auth()->user();
 
-    $query = Ticket::query()
+    // Base query: form type + who can see it. Shared by total & filtered counts.
+    $base = Ticket::query()
+        ->whereIn('ticket.ticket_type', [
+            'GAOC - Maintenance IR Form',
+            'Novodental - Maintenance IR Form',
+        ])
+        ->when(
+            !in_array($user->role, ['superadmin', 'Maintenance']),
+            fn ($q) => $q->where(function ($q) use ($user) {
+                $q->where('ticket.clinics_id', $user->clinics_id)
+                  ->orWhere('ticket.reported_by', $user->id);
+            })
+        );
+
+    $recordsTotal = (clone $base)->count();
+
+    $query = (clone $base)
         ->with('assignees')
         ->leftJoin('users as reporter', 'reporter.id', '=', 'ticket.reported_by')
         ->leftJoin('clinics', 'clinics.id', '=', 'ticket.clinics_id')
-        ->select(
-            'ticket.*',
-            'reporter.name as reported_name',
-            'clinics.name as branch'
+        ->select('ticket.*', 'reporter.name as reported_name', 'clinics.name as branch')
+        ->when(
+            $request->filled('type_of_concern'),
+            fn ($q) => $q->where('ticket.type_of_concern', $request->type_of_concern)
         )
-        ->where(function ($q) {
-            $q->where('ticket.ticket_type', 'GAOC - Maintenance IR Form')
-                ->orWhere('ticket.ticket_type', 'Novodental - Maintenance IR Form');
-        });
-        
+        ->when($searchValue !== '', function ($q) use ($searchValue) {
+            $q->where(function ($q) use ($searchValue) {
+                $like = "%{$searchValue}%";
 
-    // Non-superadmin: show tickets from their own clinic, OR tickets they created themselves
-    if (!in_array($user->role, ['superadmin', 'Maintenance'])) {
-        $query->where(function ($q) use ($user) {
-            $q->where('ticket.clinics_id', $user->clinics_id)
-            ->orWhere('ticket.reported_by', $user->id);
+                $q->where('ticket.type_of_concern', 'like', $like)
+                  ->orWhere('ticket.type_equipment_or_machine', 'like', $like)
+                  ->orWhere('ticket.equipment_or_machine_brand', 'like', $like)
+                  ->orWhere('ticket.concern_description', 'like', $like)
+                  ->orWhere('ticket.assigned_by', 'like', $like)
+                  ->orWhere('ticket.serial_number', 'like', $like)
+                  ->orWhere('reporter.name', 'like', $like)
+                  ->orWhere('clinics.name', 'like', $like)
+                  ->orWhereHas(
+                      'assignees',
+                      fn ($aq) => $aq->where('users.name', 'like', $like)
+                  );
+
+                if (strtolower($searchValue) === 'unassigned') {
+                    $q->orWhereDoesntHave('assignees');
+                }
+            });
         });
+
+    $recordsFiltered = (clone $query)->count();
+
+    if (isset($columns[$orderColumnIndex])) {
+        $query->orderBy($columns[$orderColumnIndex], $orderDir);
     }
 
-        // FILTER BY TYPE OF CONCERN
-        if ($request->filled('type_of_concern')) {
-            $query->where('ticket.type_of_concern', $request->type_of_concern);
-        }
+    $tickets = $query
+        ->skip($start)
+        ->take($perPage)
+        ->get()
+        ->map(function ($ticket) {
+            $ticket->assignees = $ticket->assignees
+                ->map(fn ($assignee) => [
+                    'id' => $assignee->id,
+                    'name' => $assignee->name,
+                ])
+                ->toArray();
 
-        // SEARCH
-        if (!empty($searchValue)) {
-            $query->where(function ($q) use ($searchValue) {
-                $q->where('ticket.type_of_concern', 'like', "%{$searchValue}%")
-                    ->orWhere('ticket.type_equipment_or_machine', 'like', "%{$searchValue}%")
-                    ->orWhere('ticket.equipment_or_machine_brand', 'like', "%{$searchValue}%")
-                    ->orWhere('ticket.concern_description', 'like', "%{$searchValue}%")
-                    ->orWhere('ticket.serial_number', 'like', "%{$searchValue}%")
-                    ->orWhere('reporter.name', 'like', "%{$searchValue}%")
-                    ->orWhere('clinics.name', 'like', "%{$searchValue}%");
-            });
-        }
+            return $ticket;
+        });
 
-        if (isset($columns[$orderColumnIndex])) {
-            $query->orderBy($columns[$orderColumnIndex], $orderDir);
-        }
-        $recordsFiltered = (clone $query)->count();
-
-        $totalQuery = Ticket::query()
-            ->where(function ($q) {
-                $q->where('ticket.ticket_type', 'GAOC - Maintenance IR Form')
-                    ->orWhere('ticket.ticket_type', 'Novodental - Maintenance IR Form');
-            });
-
-        if ($user->role !== 'superadmin') {
-            $totalQuery->where('ticket.clinics_id', $user->clinics_id);
-        }
-
-        $recordsTotal = $totalQuery->count();
-
-        $tickets = $query->skip($start)
-            ->take($perPage)
-            ->get()
-            ->map(function ($ticket) {
-                $ticket->assignees = $ticket->assignees->map(function ($assignee) {
-                    return [
-                        'id' => $assignee->id,
-                        'name' => $assignee->name
-                    ];
-                })->toArray();
-
-                return $ticket;
-            });
-
-        return response()->json([
-            'draw' => (int) $request->input('draw', 1),
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-            'data' => $tickets,
-        ]);
-    }
+    return response()->json([
+        'draw' => (int) $request->input('draw', 1),
+        'recordsTotal' => $recordsTotal,
+        'recordsFiltered' => $recordsFiltered,
+        'data' => $tickets,
+    ]);
+}
 
 
 
