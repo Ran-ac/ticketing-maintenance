@@ -291,7 +291,7 @@ $(document).ready(function() {
         let ticketId = $('#ticket_id').val();
         let assignedUsers = $('#assigned_user').val();
 
-        alert(assignedUsers);
+        // alert(assignedUsers);
 
 
         if (!ticketId || !assignedUsers || assignedUsers.length === 0) {
