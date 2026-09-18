@@ -239,65 +239,66 @@ if ($user->role !== 'superadmin') {
         }
     }
 
-public function updateStatus(Request $request, $id)
-{
-    $ticket = Ticket::findOrFail($id);
+    public function updateStatus(Request $request, $id)
+    {
+        $ticket = Ticket::findOrFail($id);
 
-    if ($request->status == 'Pending') {
+        if ($request->status == 'Pending') {
+            $ticket->status = 'Pending';
+            $ticket->remarks = null;
+        }
 
-        $ticket->status = 'Pending';
-        $ticket->remarks = null;
-    }
+        if ($request->status == 'On hold') {
+            $request->validate([
+                'remarks' => 'required|string'
+            ]);
 
-    if ($request->status == 'On hold') {
+            $ticket->status = 'On hold';
+            $ticket->remarks = $request->remarks;
+        }
 
-        $request->validate([
-            'remarks' => 'required|string'
+        if ($request->status == 'For Approved') {
+            if ($ticket->status !== 'Pending') {
+                return response()->json([
+                    'message' => 'Ticket must be Pending before it can be sent for approval.'
+                ], 422);
+            }
+
+            $request->validate([
+                'remarks' => 'required|string'
+            ]);
+
+            $ticket->status = 'For Approved';
+            $ticket->remarks = $request->remarks;
+        }
+
+        if ($request->status == 'Done') {
+            if (auth()->user()->role !== 'fdo') {
+                return response()->json([
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+
+            if ($ticket->status !== 'For Approved') {
+                return response()->json([
+                    'message' => 'Ticket must be For Approved before it can be marked Done.'
+                ], 422);
+            }
+
+            $ticket->status = 'Done';
+            
+            // Set resolved_by from the request
+            if ($request->resolved_by) {
+                $ticket->resolved_by = $request->resolved_by;
+            }
+        }
+
+        $ticket->save();
+
+        return response()->json([
+            'success' => true
         ]);
-
-        $ticket->status = 'On hold';
-        $ticket->remarks = $request->remarks;
     }
-
-    if ($request->status == 'For Approved') {
-
-        if ($ticket->status !== 'Pending') {
-            return response()->json([
-                'message' => 'Ticket must be Pending before it can be sent for approval.'
-            ], 422);
-        }
-
-        $request->validate([
-            'remarks' => 'required|string'
-        ]);
-
-        $ticket->status = 'For Approved';
-        $ticket->remarks = $request->remarks;
-    }
-
-    if ($request->status == 'Done') {
-
-        if (auth()->user()->role !== 'fdo') {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
-        }
-
-        if ($ticket->status !== 'For Approved') {
-            return response()->json([
-                'message' => 'Ticket must be For Approved before it can be marked Done.'
-            ], 422);
-        }
-
-        $ticket->status = 'Done';
-    }
-
-    $ticket->save();
-
-    return response()->json([
-        'success' => true
-    ]);
-}
         
 
 
