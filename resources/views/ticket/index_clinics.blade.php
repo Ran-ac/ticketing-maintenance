@@ -474,16 +474,21 @@ $(document).ready(function () {
                         if (userRole === 'fdo') {
 
                             if (row.status === 'For Approved') {
+                                // Get first assigned user's name
+                                const assignedUserName = row.assignees && row.assignees.length > 0 
+                                    ? row.assignees[0].name 
+                                    : '';
+
                                 return `
                                     <button class="btn btn-sm btn-success updateStatusBtn"
                                             data-id="${data}"
-                                            data-status="Done">
+                                            data-status="Done"
+                                            data-assigned-user="${assignedUserName}">
                                         Done
                                     </button>
                                 `;
                             }
 
-                            // Otherwise, no actions for FDO
                             return '';
                         }
 
@@ -501,12 +506,13 @@ $(document).ready(function () {
                     }
                 }
             ]
+           
     });
 
         $(document).on('click', '.updateStatusBtn', function () {
-
             let ticketId = $(this).data('id');
             let status = $(this).data('status');
+            let assignedUser = $(this).data('assigned-user'); // Get assigned user from button
 
             if (!confirm(`Change status to "${status}"?`)) {
                 return;
@@ -517,7 +523,8 @@ $(document).ready(function () {
                 type: 'PUT',
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
-                    status: status
+                    status: status,
+                    resolved_by: assignedUser // Add resolved_by
                 },
                 success: function () {
                     table.ajax.reload(null, false);
@@ -527,8 +534,8 @@ $(document).ready(function () {
                     console.error(xhr.responseText);
                 }
             });
-
         });
+
 
         $(document).on('click', '.openEditModal', function (event) {
 			event.preventDefault();
