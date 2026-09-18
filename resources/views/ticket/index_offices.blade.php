@@ -58,7 +58,7 @@
                     <div class="container-fluid">
                         <h1 class="mt-4">Tickets</h1>
                         <ol class="breadcrumb mb-2">
-                            <li class="breadcrumb-item active">Tickets from GAOC / NOVODENTAL </li>
+                            <li class="breadcrumb-item active">Tickets from GSS / GCC Offices </li>
                         </ol>
 
                         <div class="d-flex justify-content-between mb-3">
