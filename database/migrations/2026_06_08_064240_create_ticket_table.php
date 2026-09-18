@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('equipment_or_machine_brand')->nullable();
             $table->string('serial_number')->nullable();
             $table->text('concern_description')->nullable();
-             $table->string('reported_by')->nullable();
-             $table->text('file')->nullable();
+            $table->string('reported_by')->nullable();
+            $table->text('file')->nullable();
 
             // assignment
             $table->unsignedBigInteger('assigned_by')->nullable();
