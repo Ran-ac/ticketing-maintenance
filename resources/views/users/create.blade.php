@@ -28,16 +28,19 @@
             @enderror
         </div>
 
-                <!-- Branch  -->
+        <!-- Branch -->
         <div class="mb-3">
             <label for="branch" class="form-label">Branch:</label>
-                <select class="form-control" name="branch" id="branch">
-                    @foreach ($clinic as $brac)
-                        <option value="{{ $brac->id }}">
-                            {{ $brac->name }}
-                        </option>
-                    @endforeach
-                </select>
+
+            <select class="form-control" name="branch" id="branch" required>
+                <option value="" selected disabled>Please select branch</option>
+
+                @foreach ($clinic as $brac)
+                    <option value="{{ $brac->id }}">
+                        {{ $brac->name }}
+                    </option>
+                @endforeach
+            </select>
 
             @error('branch')
                 <div class="alert alert-danger mt-2">{{ $message }}</div>
