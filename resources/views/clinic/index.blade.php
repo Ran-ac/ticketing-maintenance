@@ -50,13 +50,13 @@
 
             <main>
                 <div class="container-fluid">
-                    <h1 class="mt-4">Clinics</h1>
+                    <h1 class="mt-4">All GAOC company</h1>
                     <ol class="breadcrumb mb-2">
-                        <li class="breadcrumb-item active">All clinics of GAOC</li>
+                        <li class="breadcrumb-item active">Clinics Office</li>
                     </ol>
 
 					<div class="d-flex justify-content-between mb-3">
-						<button class="btn btn-success" id="openModalCreate">Create New Clinics</button>
+						<button class="btn btn-success" id="openModalCreate">Create New Company</button>
 					</div>
 					<div class="card mb-4">
 						<div class="card-body">
@@ -110,7 +110,7 @@
 			<div class="modal-dialog modal-m">
 				<div class="modal-content">
 						<div class="modal-header">
-							<h5 class="modal-title" id="modalTitle">Add new clinic</h5>
+							<h5 class="modal-title" id="modalTitle">Add new company</h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 					<div class="modal-body" id="modalContentCreate"></div>
