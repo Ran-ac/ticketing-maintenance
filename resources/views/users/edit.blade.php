@@ -30,6 +30,32 @@
             @enderror
         </div>
 
+
+
+        <!-- Branch -->
+        <div class="mb-3">
+            <label for="branch" class="form-label">Branch:</label>
+
+            <select class="form-control" name="branch" id="branch" required>
+                <option value="" disabled
+                    {{ old('branch', $users->branch) ? '' : 'selected' }}>
+                    Please select branch
+                </option>
+
+                @foreach ($department as $brac)
+                    <option value="{{ $brac->id }}"
+                        {{ old('branch', $department->branch) == $brac->id ? 'selected' : '' }}>
+                        {{ $brac->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            @error('branch')
+                <div class="alert alert-danger mt-2">{{ $message }}</div>
+            @enderror
+        </div>
+
+
         <!-- Contact Number -->
         <div class="mb-3">
             <label for="contact_number" class="form-label">Contact Number</label>
