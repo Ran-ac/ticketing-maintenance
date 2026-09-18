@@ -128,10 +128,12 @@ class UserController extends Controller
     public function edit(string $id)
     {
         $users = User::find($id);
-        $department = Department::all();
+        $department = Department::select('name')->get();
+        $clinic = Clinics::select('id', 'name')->get();
         $userDepartmentIds = $users->user_department->pluck('id')->toArray();
 
-        return view('users.edit',compact('users','department','userDepartmentIds'));
+
+        return view('users.edit',compact('users','department','userDepartmentIds','clinic'));
     }
 
 

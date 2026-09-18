@@ -315,11 +315,23 @@ if ($user->role !== 'superadmin') {
 
     public function index_offices()
     {
-        $users = User::select('id', 'name')->get();
-
+        $users = User::select('id', 'name')
+            ->where('role', 'Maintenance')
+            ->get();
+        
         $ticket = Ticket::all();
 
-        return view('ticket.index_offices', compact('ticket','users'));
+        return view('ticket.index_offices', compact('ticket', 'users')); // ✅ Both variables
+    }
+
+    // Add this new method
+    public function get_maintenance_users()
+    {
+        $users = User::select('id', 'name')
+            ->where('role', 'Maintenance')
+            ->get();
+        
+        return response()->json($users);
     }
 
 
@@ -355,9 +367,8 @@ if ($user->role !== 'superadmin') {
 
 
 
-   public function store(Request $request)
-   {
-
+    public function store(Request $request)
+    {
         $user_branch = auth()->user()->branch;
         $user_email = auth()->user()->email;
 
@@ -396,13 +407,14 @@ if ($user->role !== 'superadmin') {
             'status'                     => 'Pending',
             'file'                       => $filePath,
             'assigned_by'                => null,
-
+            'resolved_by'                => null, // Remove if nullable is set in migration
         ]);
-            return response()->json([
-                'success' => true,
-                'message' => 'Ticket created successfully',
-                'data'    => $ticket
-            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket created successfully',
+            'data'    => $ticket
+        ]);
     }
 
 

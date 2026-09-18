@@ -189,32 +189,34 @@
         </div>
 
         <!-- Assign Modal -->
-<div class="modal fade" id="assignModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Assign Users</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            
-            <div class="modal-body">
-                <input type="hidden" id="ticket_id">
-                
-                <label for="assigned_user" class="form-label">Select Users</label>
-                <select id="assigned_user" class="form-select" multiple placeholder="Search users...">
-                    @foreach($users as $user)
-                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-success" id="saveAssign">Save</button>
+        <div class="modal fade" id="assignModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Assign Users</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <input type="hidden" id="ticket_id">
+                        
+                        <label for="assigned_user" class="form-label">Select Maintenance Users</label>
+                        <select id="assigned_user" class="form-select" multiple placeholder="Search users...">
+                            @forelse($users as $user)
+                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @empty
+                                <option disabled>No maintenance users available</option>
+                            @endforelse
+                        </select>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success" id="saveAssign">Save</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
             
         <!-- Bootstrap core JavaScript-->
@@ -252,21 +254,30 @@
 const isSuperAdmin = @json(auth()->user()->role === 'superadmin');
 
 $(document).ready(function() {
-    
-    // Initialize Tom Select
-    let tomSelect = null;
-    
+    let tomSelect;
+
     $('#assignModal').on('show.bs.modal', function() {
         if (!tomSelect) {
-            tomSelect = new TomSelect('#assigned_user', {
-                create: false,
-                placeholder: 'Search and select users...',
-                searchField: 'text',
-                maxItems: null,  // Unlimited selections
-                plugins: {
-                    remove_button: {
-                        title: 'Remove this item'
-                    }
+            // Fetch users via AJAX
+            $.ajax({
+                url: "{{ route('ticket.get_maintenance_users') }}", // Create this route
+                type: "GET",
+                success: function(users) {
+                    tomSelect = new TomSelect('#assigned_user', {
+                        options: users.map(user => ({
+                            value: user.id,
+                            text: user.name
+                        })),
+                        create: false,
+                        placeholder: 'Search and select users...',
+                        searchField: 'text',
+                        maxItems: null,
+                        plugins: {
+                            remove_button: {
+                                title: 'Remove this item'
+                            }
+                        }
+                    });
                 }
             });
         }
@@ -280,16 +291,11 @@ $(document).ready(function() {
             tomSelect.clear();
         }
     });
-
     // Save assign click
     $('#saveAssign').on('click', function(e) {
         e.preventDefault();
-
         let ticketId = $('#ticket_id').val();
         let assignedUsers = $('#assigned_user').val();
-
-        alert(assignedUsers);
-        
 
         if (!ticketId || !assignedUsers || assignedUsers.length === 0) {
             alert('Please select ticket and at least one user');
@@ -309,8 +315,6 @@ $(document).ready(function() {
                     alert('Users assigned successfully!');
                     $('#assignModal').modal('hide');
                     $('#assigned_user').val(null).trigger('change');
-                    
-                    // ✅ Better: Reload DataTable instead of full page refresh
                     $('#ticketTable').DataTable().ajax.reload();
                 }
             },

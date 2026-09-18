@@ -42,9 +42,9 @@
                     Please select branch
                 </option>
 
-                @foreach ($department as $brac)
+                @foreach ($clinic as $brac)
                     <option value="{{ $brac->id }}"
-                        {{ old('branch', $department->branch) == $brac->id ? 'selected' : '' }}>
+                        {{ old('branch', $users->branch) == $brac->id ? 'selected' : '' }}>
                         {{ $brac->name }}
                     </option>
                 @endforeach

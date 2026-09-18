@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
 
         // ticket assigning 
         Route::post('/ticket/task-assign', [TicketController::class, 'taskAssign'])->name('task_assign');
+        Route::get('/ticket/get-maintenance-users', [TicketController::class, 'get_maintenance_users'])->name('get_maintenance_users');
 
         //Ticket form routes
         

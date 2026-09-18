@@ -57,7 +57,7 @@
             <div id="content">
 
                 <!-- Topbar -->
-                   @include('partials.navbar')
+                @include('partials.navbar')
                 <!-- End of Topbar -->
 
             <main>
@@ -171,6 +171,7 @@ $(document).ready(function () {
         let table = $("#usersTable").DataTable({
             processing: true,
             serverSide: true,
+            scrollX: true,
             ajax: "{{ route('users.fetchUserData') }}", // Fetching data via AJAX
             columns: [
                 { data: "id", name: "id" },
