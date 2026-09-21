@@ -3,10 +3,34 @@
 namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\Ticket;
+use App\Models\TicketAssigned;
 use Illuminate\Http\Request;
 
 class MyTaskController extends Controller
 {
+
+    public function getAssignedCount()
+    {
+        $assignedCount = TicketAssigned::where('user_id', auth()->id())
+            ->count();
+        return response()->json([
+            'count' => $assignedCount
+        ]);
+    }
+
+    public function getForApprovalCount()
+    {
+        $forApprovalCount = Ticket::where('reported_by', auth()->id())
+            ->where('status', 'for approval')
+            ->count();
+
+        return response()->json([
+            'count' => $forApprovalCount
+        ]);
+    }
+
+
+
 
     public function fetchMyTaskTickets(Request $request)
     {

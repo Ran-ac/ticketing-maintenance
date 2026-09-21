@@ -50,8 +50,11 @@
             @unless(auth()->user()->role === 'fdo')
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('myTask.index') }}">
-                        <i class="fas fa-fw fa-table"></i>
-                        <span>My Task</span>
+                        <i class="fas fa-fw fa-ticket-alt"></i>
+                        <span>My Tickets</span>
+                        <span class="badge badge-danger badge-counter ml-2" id="ticketBadge" style="display: none;">
+                            <i class="fas fa-bell"></i> <span id="ticketCount">0</span>
+                        </span>
                     </a>
                 </li>
             @endunless
@@ -92,3 +95,32 @@
             </div>
 
         </ul>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateTicketCount() {
+        const userRole = "{{ auth()->user()->role }}";
+        const isMaintenance = userRole === 'Maintenance';
+        const endpoint = isMaintenance 
+            ? "{{ route('myTask.assigned-count') }}" 
+            : "{{ route('myTask.for-approval-count') }}";
+        
+        fetch(endpoint)
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('ticketBadge');
+                const count = document.getElementById('ticketCount');
+                if (data.count > 0) {
+                    count.textContent = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    updateTicketCount();
+    setInterval(updateTicketCount, 30000);
+    });
+</script>

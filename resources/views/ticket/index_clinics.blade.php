@@ -254,6 +254,8 @@ const isSuperAdmin = @json(auth()->user()->role === 'superadmin');
 
 const userRole = @json(auth()->user()->role);
 
+const users = @json($users);
+
 $(document).ready(function() {
 
     // Initialize Tom Select
@@ -462,11 +464,14 @@ $(document).ready(function () {
                         if(userRole === "Maintenance"){
                             return '';
                         }
-
                         // Done ticket
                         if (row.status === 'Done') {
+                            // Find the user with matching ID
+                            const resolvedUser = users.find(user => user.id === row.resolved_by);
+                            const resolvedName = resolvedUser?.name ?? '—';
+                            
                             return `<div class="text-success">
-                                        <small>Resolved by ${row.resolved_by ?? '—'}</small>
+                                        <small>Resolved by ${resolvedName}</small>
                                     </div>`;
                         }
 
