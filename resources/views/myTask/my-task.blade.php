@@ -525,12 +525,16 @@ $(document).ready(function () {
                     });
                 }
             },
-            { data: "file", name: "file",
+            { 
+                data: "file", 
+                name: "file",
                 render: function(data) {
                     if (!data) return '<span class="text-muted">No file</span>';
-                    return `<img src="/storage/${data}" width="50" height="50"
+                    return `<img src="/ticketing_system_maintenance/public/storage/${data}" 
+                                width="50" height="50"
                                 style="object-fit:cover; border-radius:5px; cursor:pointer;"
-                                class="view-image" data-image="/storage/${data}">`;
+                                class="view-image" 
+                                data-image="/ticketing_system_maintenance/public/storage/${data}">`;
                 }
             },
             { data: "remarks",       name: "remarks" },
