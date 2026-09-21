@@ -95,6 +95,7 @@ $(document).ready(function () {
 
             success: function(response) {
                 alert('Ticket added successfully!');
+                location.reload();
                 $('#formModalCreate').modal('hide');
             },
 
