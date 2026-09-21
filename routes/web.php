@@ -69,8 +69,19 @@ Route::middleware('auth')->group(function () {
         });
 
 
+        Route::middleware('auth')->group(function () {
+            // For Arnold (maintenance) - tickets assigned to him
+            Route::get('/myTask/assigned-count', [MyTaskController::class, 'getAssignedCount'])
+                ->name('myTask.assigned-count');
+            
+            // For Manager - tickets awaiting approval (submitted by assigned users)
+            Route::get('/myTask/for-approval-count', [MyTaskController::class, 'getForApprovalCount'])
+                ->name('myTask.for-approval-count');
+        });
+
+
         // Clinic routes
-    Route::prefix('clinic')->as('clinic.')->group(function () {
+        Route::prefix('clinic')->as('clinic.')->group(function () {
         // /admin/clinic && admin.clinic
         
         Route::get('/fetchClinicData', [ClinicsController::class, 'fetchClinicData'])->name('fetchClinicData');

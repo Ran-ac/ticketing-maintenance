@@ -51,10 +51,9 @@ class Ticket extends Model
         );
     }
 
-    // public function maintenanceAssignees()
-    // {
-    //     return $this->belongsToMany(User::class, 'ticket_assigned', 'ticket_id', 'user_id')
-    //             ->where('users.role', 'maintenance');
-    // }
+    public function resolvedBy()
+    {
+        return $this->belongsTo(User::class, 'resolved_by');
+    }
     
 }

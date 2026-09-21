@@ -382,6 +382,7 @@ $(document).ready(function () {
     let table = $("#ticketTable").DataTable({
         processing: true,
         serverSide: true,
+        scrollX: true,
         ajax: "{{ route('myTask.fetchMyTaskTickets') }}",
         columns: [
             { data: "id",          name: "id" },
