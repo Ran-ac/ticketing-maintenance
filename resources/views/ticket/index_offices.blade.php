@@ -366,6 +366,18 @@ document.getElementById('ticketForm').addEventListener('submit', function(e) {
             $('#imageModal').modal('show');
     });
 
+
+    var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+if (csrfToken) {
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    });
+}
+
 $(document).ready(function () {
         let table = $("#ticketTable").DataTable({
             processing: true,
