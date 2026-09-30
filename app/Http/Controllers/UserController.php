@@ -15,39 +15,46 @@ class UserController extends Controller
 
     public function fetchUserData(Request $request)
     {
-        $columns = ['id', 'name', 'email', 'address', 'branch', 'contact_number', 'role', 'created_at'];
+        // Map DataTables column index => qualified DB column
+        $columns = [
+            'users.id',
+            'users.name',
+            'users.email',
+            'users.address',
+            'clinics.name',          // branch is displayed as the clinic name
+            'users.contact_number',
+            'users.role',
+            'users.created_at',
+        ];
 
-        $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'asc');
+        $orderColumnIndex = (int) $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
         $searchValue = $request->input('search.value', '');
-        $perPage = $request->input('length', 10);
-        $start = $request->input('start', 0);
+        $perPage = (int) $request->input('length', 10);
+        $start = (int) $request->input('start', 0);
 
         $query = User::query()
             ->with('user_department')
             ->leftJoin('clinics', 'clinics.id', '=', 'users.branch')
-            ->select(
-                'users.*',
-                'clinics.name as branch' // resolve id -> name here
-        );
+            ->select('users.*', 'clinics.name as branch');
 
         // SEARCH
         if ($searchValue) {
             $query->where(function ($q) use ($searchValue) {
-                $q->where('id', 'LIKE', "%{$searchValue}%")
-                ->orWhere('name', 'LIKE', "%{$searchValue}%")
-                ->orWhere('email', 'LIKE', "%{$searchValue}%")
-                ->orWhere('branch', 'LIKE', "%{$searchValue}%")
-                ->orWhere('role', 'LIKE', "%{$searchValue}%")
-                ->orWhere('created_at', 'LIKE', "%{$searchValue}%")
+                $q->where('users.id', 'LIKE', "%{$searchValue}%")
+                ->orWhere('users.name', 'LIKE', "%{$searchValue}%")
+                ->orWhere('users.email', 'LIKE', "%{$searchValue}%")
+                ->orWhere('clinics.name', 'LIKE', "%{$searchValue}%")
+                ->orWhere('users.role', 'LIKE', "%{$searchValue}%")
+                ->orWhere('users.created_at', 'LIKE', "%{$searchValue}%")
                 ->orWhereHas('user_department', function ($d) use ($searchValue) {
-                    $d->where('name', 'LIKE', "%{$searchValue}%");
+                    $d->where('department.name', 'LIKE', "%{$searchValue}%");
                 });
             });
         }
 
         // SORTING
-        $query->orderBy($columns[$orderColumnIndex] ?? 'id', $orderDir);
+        $query->orderBy($columns[$orderColumnIndex] ?? 'users.id', $orderDir);
 
         $recordsTotal = User::count();
         $recordsFiltered = $query->count();
@@ -61,10 +68,10 @@ class UserController extends Controller
         });
 
         return response()->json([
-            'draw' => intval($request->input('draw', 1)),
+            'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data' => $users
+            'data' => $users,
         ]);
     }
 
