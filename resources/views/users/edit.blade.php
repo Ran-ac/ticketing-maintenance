@@ -92,10 +92,11 @@
             <label for="role" class="form-label">Role</label>
             <select class="form-select" name="role" id="role">
                 <option value="">Please Select Role</option>
-                <option value="superadmin" {{ $users->role == 'superadmin' ? 'selected' : '' }}>Super Admin</option>
                 <option value="head" {{ $users->role == 'head' ? 'selected' : '' }}>Head</option>
                 <option value="admin" {{ $users->role == 'admin' ? 'selected' : '' }}>Admin</option>
-                <option value="user" {{ $users->role == 'user' ? 'selected' : '' }}>User</option>
+                <option value="IT" {{ $users->role == 'IT' ? 'selected' : '' }}>IT</option>
+                 <option value="Maintenance" {{ $users->role == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                  <option value="user" {{ $users->role == 'FDO' ? 'selected' : '' }}>FDO</option>
             </select>
             @error('role')
                 <div class="alert alert-danger mt-2">{{ $message }}</div>
