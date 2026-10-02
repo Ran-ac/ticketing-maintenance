@@ -61,7 +61,7 @@
 					<div class="card mb-4">
 						<div class="card-body">
 							<div class="table-responsive">
-								<table class="table table-striped table-hover" id="departmentTable" width="100%" cellspacing="0">
+								<table class="table table-bordered table-striped table-hover" id="departmentTable" width="100%" cellspacing="0">
 								<thead>
 									<tr>
 									<th>Id</th>
