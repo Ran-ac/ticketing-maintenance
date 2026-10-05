@@ -69,9 +69,11 @@ public function fetchClinicalTicketData(Request $request)
                 $like = "%{$searchValue}%";
 
                 $q->where('ticket.type_of_concern', 'like', $like)
+                  ->orWhere('ticket.ticket_type', 'like', $like)
                   ->orWhere('ticket.type_equipment_or_machine', 'like', $like)
                   ->orWhere('ticket.equipment_or_machine_brand', 'like', $like)
                   ->orWhere('ticket.concern_description', 'like', $like)
+                  ->orWhere('ticket.status', 'like', $like)
                   ->orWhere('ticket.assigned_by', 'like', $like)
                   ->orWhere('ticket.serial_number', 'like', $like)
                   ->orWhere('reporter.name', 'like', $like)
