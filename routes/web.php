@@ -20,8 +20,11 @@ Route::middleware('auth')->group(function () {
     Route::prefix('ticket')->as('ticket.')->group(function () {
 
 
-        // fetch all data 
+        // fetch dashboard counter and branch concern
         Route::get('/dashboard', [DashboardController::class, 'TicketingDashboard'])->middleware(['auth', 'verified'])->name('TicketingDashboard');
+
+        // fetch company concern
+        Route::get('/dashboard/company-concern-chart', [DashboardController::class, 'companyConcernData'])->name('companyConcernChart');
 
 
         //viewing of template for ticketing XX

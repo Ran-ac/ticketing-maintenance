@@ -57,4 +57,11 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'resolved_by');
     }
     
+public function scopeCountByColumn($query, string $column)
+{
+    return $query->whereNotNull($column)
+        ->select($column)
+        ->selectRaw('COUNT(*) as total')
+        ->groupBy($column);
+}
 }

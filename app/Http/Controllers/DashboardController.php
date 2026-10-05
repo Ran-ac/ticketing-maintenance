@@ -44,6 +44,18 @@ class DashboardController extends Controller
         ));
     }
 
+    public function companyConcernData()
+    {
+        $data = Ticket::whereNotNull('ticket_type')
+            ->pluck('ticket_type')   // only fetches this one column
+            ->countBy();             // ['GAOC - ...' => 12, 'Novodental - ...' => 5]
+
+        return response()->json([
+            'labels' => $data->keys(),
+            'values' => $data->values(),
+        ]);
+    }
+
 
 
     public function index()
