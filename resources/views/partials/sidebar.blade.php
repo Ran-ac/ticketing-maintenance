@@ -104,69 +104,69 @@
         </ul>
 
 <script>
-        document.addEventListener('DOMContentLoaded', function () {
-        const badge = document.getElementById('ticketBadge');
-        const count = document.getElementById('ticketCount');
-        if (!badge || !count) return; // badge isn't rendered for this role
+    document.addEventListener('DOMContentLoaded', function () {
+    const badge = document.getElementById('ticketBadge');
+    const count = document.getElementById('ticketCount');
+    if (!badge || !count) return; // badge isn't rendered for this role
 
-        const userId   = "{{ auth()->id() }}";
-        const userRole = "{{ strtolower(auth()->user()->role) }}";
-        const seenKey  = `ticketSeenCount_${userId}`;
-        const endpoint = userRole === 'maintenance'
-            ? "{{ route('myTask.assigned-count') }}"
-            : "{{ route('myTask.for-approval-count') }}";
+    const userId   = "{{ auth()->id() }}";
+    const userRole = "{{ strtolower(auth()->user()->role) }}";
+    const seenKey  = `ticketSeenCount_${userId}`;
+    const endpoint = userRole === 'maintenance'
+        ? "{{ route('myTask.assigned-count') }}"
+        : "{{ route('myTask.for-approval-count') }}";
 
-        let latestCount = 0;
+    let latestCount = 0;
 
-        const getSeen = () => parseInt(localStorage.getItem(seenKey) || '0', 10);
-        const setSeen = (n) => localStorage.setItem(seenKey, n);
+    const getSeen = () => parseInt(localStorage.getItem(seenKey) || '0', 10);
+    const setSeen = (n) => localStorage.setItem(seenKey, n);
 
-        function renderBadge() {
-            const seen = getSeen();
+    function renderBadge() {
+        const seen = getSeen();
 
-            // Count dropped (tickets handled) -> reset baseline
-            if (latestCount < seen) setSeen(latestCount);
+        // Count dropped (tickets handled) -> reset baseline
+        if (latestCount < seen) setSeen(latestCount);
 
-            const unseen = latestCount - getSeen();
-            if (unseen > 0) {
-                count.textContent = unseen;
-                badge.style.display = 'inline-block';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        function updateTicketCount() {
-            fetch(endpoint, { headers: { 'Accept': 'application/json' } })
-                .then(r => r.json())
-                .then(data => {
-                    latestCount = data.count || 0;
-                    renderBadge();
-                })
-                .catch(err => console.error('Error:', err));
-        }
-
-        function markViewed() {
-            setSeen(latestCount);
+        const unseen = latestCount - getSeen();
+        if (unseen > 0) {
+            count.textContent = unseen;
+            badge.style.display = 'inline-block';
+        } else {
             badge.style.display = 'none';
-
-            // optional: also tell the server
-            fetch("{{ route('myTask.mark-viewed') }}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                keepalive: true
-            });
         }
+    }
 
-        // Ticket Manager sub-links (FDO) AND My Tickets link (others)
-        document.querySelectorAll(
-            '#collapseTwo .collapse-item, a[href="{{ route('myTask.index') }}"]'
-        ).forEach(link => link.addEventListener('click', markViewed));
+    function updateTicketCount() {
+        fetch(endpoint, { headers: { 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(data => {
+                latestCount = data.count || 0;
+                renderBadge();
+            })
+            .catch(err => console.error('Error:', err));
+    }
 
-        updateTicketCount();
-        setInterval(updateTicketCount, 30000);
+    function markViewed() {
+        setSeen(latestCount);
+        badge.style.display = 'none';
+
+        // optional: also tell the server
+        fetch("{{ route('myTask.mark-viewed') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            keepalive: true
         });
+    }
+
+    // Ticket Manager sub-links (FDO) AND My Tickets link (others)
+    document.querySelectorAll(
+        '#collapseTwo .collapse-item, a[href="{{ route('myTask.index') }}"]'
+    ).forEach(link => link.addEventListener('click', markViewed));
+
+    updateTicketCount();
+    setInterval(updateTicketCount, 30000);
+    });
 </script>
