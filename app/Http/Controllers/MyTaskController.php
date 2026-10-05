@@ -9,24 +9,39 @@ use Illuminate\Http\Request;
 class MyTaskController extends Controller
 {
 
-    public function getAssignedCount()
+   public function getAssignedCount()
     {
-        $assignedCount = TicketAssigned::where('user_id', auth()->id())
+        $count = TicketAssigned::where('user_id', auth()->id())
+            ->whereNull('viewed_at')
             ->count();
-        return response()->json([
-            'count' => $assignedCount
-        ]);
+
+        return response()->json(['count' => $count]);
     }
 
     public function getForApprovalCount()
     {
-        $forApprovalCount = Ticket::where('reported_by', auth()->id())
-            ->where('status', 'for approval')
+        $count = Ticket::where('reported_by', auth()->id())
+            ->where('status', 'For Approval')
+            ->whereNull('approval_viewed_at')
             ->count();
 
-        return response()->json([
-            'count' => $forApprovalCount
-        ]);
+        return response()->json(['count' => $count]);
+    }
+
+    public function markViewed()
+    {
+        if (auth()->user()->role === 'Maintenance') {
+            TicketAssigned::where('user_id', auth()->id())
+                ->whereNull('viewed_at')
+                ->update(['viewed_at' => now()]);
+        } else {
+            Ticket::where('reported_by', auth()->id())
+                ->where('status', 'For Approval')
+                ->whereNull('approval_viewed_at')
+                ->update(['approval_viewed_at' => now()]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
 

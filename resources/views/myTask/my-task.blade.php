@@ -166,7 +166,7 @@
         </div>
     </div>
 
-    <!-- For Approved remarks modal -->
+    <!-- For Approval remarks modal -->
     <div class="modal fade" id="approvalModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -430,7 +430,7 @@ $(document).ready(function () {
                     }
 
                     // For Approval is final — no dropdown
-                    if (data === 'For Approved') {
+                    if (data === 'For Approval') {
                         return `
                             <button class="btn ${buttonClass} btn-sm" type="button" disabled>
                                 ${data}
@@ -557,14 +557,14 @@ $(document).ready(function () {
                         return `
                             <button class="btn btn-sm btn-warning updateStatusBtn"
                                     data-id="${data}"
-                                    data-status="For Approved">
-                                For Approved
+                                    data-status="For Approval">
+                                For Approval
                             </button>
                         `;
                     }
 
                     // FDO only can finish
-                    if (row.status === 'For Approved') {
+                    if (row.status === 'For Approval') {
 
                         if (userRole === 'fdo') {
                             return `
@@ -620,12 +620,12 @@ $(document).ready(function () {
         $('#onHoldModal').modal('hide');
     });
 
-    // Action button: For Approved / Done
+    // Action button: For Approval / Done
     $(document).on('click', '.updateStatusBtn', function () {
         let ticketId = $(this).data('id');
         let status = $(this).data('status');
 
-        if (status === 'For Approved') {
+        if (status === 'For Approval') {
             $('#approveTicketId').val(ticketId);
             $('#approveRemarks').val('');
             $('#approvalModal').modal('show');
@@ -648,7 +648,7 @@ $(document).ready(function () {
             return;
         }
 
-        updateTicketStatus(ticketId, 'For Approved', remarks);
+        updateTicketStatus(ticketId, 'For Approval', remarks);
         $('#approvalModal').modal('hide');
     });
 

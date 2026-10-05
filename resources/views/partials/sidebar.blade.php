@@ -27,11 +27,19 @@
             </div>
             <!-- Nav Item - Pages Collapse Menu -->
                 <li class="nav-item"> 
-                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" 
-                        aria-expanded="true" aria-controls="collapseTwo"> 
-                        <i class="fas fa-fw fas fa-tasks"></i> 
-                        <span>Ticketing Management</span> 
-                    </a> 
+                    <a class="nav-link collapsed d-flex align-items-center" href="#" data-toggle="collapse" data-target="#collapseTwo"
+                        aria-expanded="true" aria-controls="collapseTwo">
+                        <i class="fas fa-fw fa-tasks"></i>
+                        <span>Ticket Manager</span>
+
+                    @if(in_array(auth()->user()->role, ['fdo']))
+                        <span id="ticketBadge" class="badge badge-danger badge-pill ml-auto mr-1"
+                            style="font-size: 0.6rem; display: none;">
+                            <i class="fas fa-bell" style="font-size: 0.555rem;"></i>
+                            <span id="ticketCount">0</span>
+                        </span>
+                    @endif
+                    </a>
                     <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar"> 
                         <div class="bg-white py-2 collapse-inner rounded"> 
                             <h6 class="collapse-header">Ticketing Type:</h6> 
@@ -41,9 +49,8 @@
                                     GSS / GGC OFFICE - IR
                                 </a>
                             @endunless
-
                         </div> 
-                    </div> 
+                    </div>
                 </li>
 
             <!-- Nav Item - Tables -->
@@ -97,30 +104,69 @@
         </ul>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    function updateTicketCount() {
-        const userRole = "{{ auth()->user()->role }}";
-        const isMaintenance = userRole === 'Maintenance';
-        const endpoint = isMaintenance 
-            ? "{{ route('myTask.assigned-count') }}" 
-            : "{{ route('myTask.for-approval-count') }}";
-        
-        fetch(endpoint)
-            .then(response => response.json())
-            .then(data => {
-                const badge = document.getElementById('ticketBadge');
-                const count = document.getElementById('ticketCount');
-                if (data.count > 0) {
-                    count.textContent = data.count;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
+        document.addEventListener('DOMContentLoaded', function () {
+        const badge = document.getElementById('ticketBadge');
+        const count = document.getElementById('ticketCount');
+        if (!badge || !count) return; // badge isn't rendered for this role
 
-    updateTicketCount();
-    setInterval(updateTicketCount, 30000);
-    });
+        const userId   = "{{ auth()->id() }}";
+        const userRole = "{{ strtolower(auth()->user()->role) }}";
+        const seenKey  = `ticketSeenCount_${userId}`;
+        const endpoint = userRole === 'maintenance'
+            ? "{{ route('myTask.assigned-count') }}"
+            : "{{ route('myTask.for-approval-count') }}";
+
+        let latestCount = 0;
+
+        const getSeen = () => parseInt(localStorage.getItem(seenKey) || '0', 10);
+        const setSeen = (n) => localStorage.setItem(seenKey, n);
+
+        function renderBadge() {
+            const seen = getSeen();
+
+            // Count dropped (tickets handled) -> reset baseline
+            if (latestCount < seen) setSeen(latestCount);
+
+            const unseen = latestCount - getSeen();
+            if (unseen > 0) {
+                count.textContent = unseen;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function updateTicketCount() {
+            fetch(endpoint, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(data => {
+                    latestCount = data.count || 0;
+                    renderBadge();
+                })
+                .catch(err => console.error('Error:', err));
+        }
+
+        function markViewed() {
+            setSeen(latestCount);
+            badge.style.display = 'none';
+
+            // optional: also tell the server
+            fetch("{{ route('myTask.mark-viewed') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                keepalive: true
+            });
+        }
+
+        // Ticket Manager sub-links (FDO) AND My Tickets link (others)
+        document.querySelectorAll(
+            '#collapseTwo .collapse-item, a[href="{{ route('myTask.index') }}"]'
+        ).forEach(link => link.addEventListener('click', markViewed));
+
+        updateTicketCount();
+        setInterval(updateTicketCount, 30000);
+        });
 </script>

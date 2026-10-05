@@ -257,7 +257,7 @@ public function updateStatus(Request $request, $id)
         $ticket->remarks = $request->remarks;
     }
 
-    if ($request->status == 'For Approved') {
+    if ($request->status == 'For Approval') {
         if ($ticket->status !== 'Pending') {
             return response()->json([
                 'message' => 'Ticket must be Pending before it can be sent for approval.'
@@ -268,7 +268,7 @@ public function updateStatus(Request $request, $id)
             'remarks' => 'required|string'
         ]);
 
-        $ticket->status = 'For Approved';
+        $ticket->status = 'For Approval';
         $ticket->remarks = $request->remarks;
     }
 
@@ -279,9 +279,9 @@ public function updateStatus(Request $request, $id)
             ], 403);
         }
 
-        if ($ticket->status !== 'For Approved') {
+        if ($ticket->status !== 'For Approval') {
             return response()->json([
-                'message' => 'Ticket must be For Approved before it can be marked Done.'
+                'message' => 'Ticket must be For Approval before it can be marked Done.'
             ], 422);
         }
 

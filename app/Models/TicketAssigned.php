@@ -11,6 +11,7 @@ class TicketAssigned extends Model
     protected $fillable = [
         'ticket_id',
         'user_id',
+        'viewed_at',
         'assigned_at'
     ];
 

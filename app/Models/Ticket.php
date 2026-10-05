@@ -21,6 +21,7 @@ class Ticket extends Model
         'email',
         'status',
         'remarks',
+        'approval_viewed_at',
         'file',
         'assigned_by'
     ];

@@ -479,10 +479,10 @@ $(document).ready(function () {
                                     </div>`;
                         }
 
-                        // FDO: show Done button only when status is For Approved
+                        // FDO: show Done button only when status is For Approval
                         if (userRole === 'fdo') {
 
-                            if (row.status === 'For Approved') {
+                            if (row.status === 'For Approval') {
                                 // Get first assigned user's name
                                 const assignedUserName = row.assignees && row.assignees.length > 0 
                                     ? row.assignees[0].name 

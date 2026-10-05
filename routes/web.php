@@ -79,6 +79,8 @@ Route::middleware('auth')->group(function () {
                 ->name('myTask.for-approval-count');
         });
 
+        Route::post('/my-task/mark-viewed', [YourController::class, 'markViewed'])->name('myTask.mark-viewed');
+
 
         // Clinic routes
         Route::prefix('clinic')->as('clinic.')->group(function () {
