@@ -43,8 +43,9 @@
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                     {{ auth()->user()->name }}
                                 </span>
-                                <img class="img-profile rounded-circle"
-                                    src="{{ asset ('img/undraw_profile.svg') }}">
+                                {{-- <img class="img-profile rounded-circle"
+                                    src="{{ asset ('img/undraw_profile.svg') }}"> --}}
+                                    <i class="fas fa-user-circle fa-2x" style="color: #1f0909;"></i>
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
