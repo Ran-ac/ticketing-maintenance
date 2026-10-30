@@ -41,6 +41,11 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'reported_by');
     }
 
+    public function histories()
+    {
+        return $this->hasMany(TicketHistory::class);
+    }
+
 
     public function assignees()
     {
@@ -57,11 +62,20 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'resolved_by');
     }
     
-public function scopeCountByColumn($query, string $column)
-{
-    return $query->whereNotNull($column)
-        ->select($column)
-        ->selectRaw('COUNT(*) as total')
-        ->groupBy($column);
-}
+    public function scopeCountByColumn($query, string $column)
+    {
+        return $query->whereNotNull($column)
+            ->select($column)
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy($column);
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(TicketLog::class, 'ticket_id');
+    }
+
+
+
+    
 }

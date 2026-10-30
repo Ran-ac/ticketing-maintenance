@@ -26,6 +26,78 @@
     <!-- Bootstrap CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <style>
+        /* ---------- History timeline ---------- */
+        .history-timeline {
+            list-style: none;
+            margin: 0;
+            padding: 0 0 0 34px;
+            position: relative;
+        }
+
+        /* the vertical line */
+        .history-timeline::before {
+            content: '';
+            position: absolute;
+            left: 13px;
+            top: 4px;
+            bottom: 4px;
+            width: 2px;
+            background: #e3e6f0;
+        }
+
+        .history-timeline li {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+
+        .history-timeline li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* the colored dot with icon */
+        .history-timeline .tl-dot {
+            position: absolute;
+            left: -34px;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 0 0 4px #fff; /* gap between the dot and the line */
+        }
+
+        .history-timeline .tl-card {
+            background: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .history-timeline .tl-change {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .history-timeline .tl-remarks {
+            margin-top: 8px;
+            padding-left: 10px;
+            border-left: 3px solid #d1d3e2;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* clickable rows */
+        #ticketTable tbody tr { cursor: pointer; }
+    </style>
+
 </head>
 
 <body id="page-top">
@@ -239,7 +311,6 @@
                     </div>
 
                 </div>
-                {{-- testing comment --}}
                 <div class="modal-footer">
 
                     <button type="button"
@@ -256,6 +327,46 @@
 
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Details Modal (Details + History) -->
+    <div class="modal fade" id="ticketDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">View Ticket #<span id="detailId"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#detailsTab" type="button">
+                                Details
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#historyTab" type="button">
+                                History
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="detailsTab">
+                            <div id="ticketDetailsBody"></div>
+                        </div>
+                        <div class="tab-pane fade" id="historyTab">
+                            <div id="ticketHistoryBody"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -293,6 +404,97 @@
 
 const isSuperAdmin = @json(auth()->user()->role === 'superadmin');
 const userRole = @json(auth()->user()->role);
+
+/* ------------------------------------------------------------------
+ * Shared constants / helpers (used by the history log)
+ * ------------------------------------------------------------------ */
+const STORAGE_URL = '/ticketing_system_maintenance/public/storage';
+
+const ROUTES = {
+    history: "{{ route('ticket.history', ':id') }}",
+};
+
+const url = (template, id) => template.replace(':id', id);
+
+const esc = (value) => $('<div>').text(value ?? '').html();
+
+const formatDate = (value) =>
+    new Date(value).toLocaleString('en-US', {
+        month: 'long', day: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true,
+    });
+
+const ACTION_META = {
+    created:        { label: 'Ticket created',  color: 'primary',   icon: 'fa-plus' },
+    status_changed: { label: 'Status changed',  color: 'info',      icon: 'fa-exchange-alt' },
+    assigned:       { label: 'Assigned',        color: 'success',   icon: 'fa-user-check' },
+    edited:         { label: 'Edited',          color: 'warning',   icon: 'fa-pen' },
+    deleted:        { label: 'Deleted',         color: 'danger',    icon: 'fa-trash' },
+};
+
+const getActionMeta = (action) =>
+    ACTION_META[action] ?? {
+        label: (action ?? 'Update').replace(/_/g, ' '),
+        color: 'secondary',
+        icon: 'fa-circle',
+    };
+
+const loadHistory = (ticketId) => {
+    const $body = $('#ticketHistoryBody');
+    $body.html('<div class="text-center text-muted py-3">Loading history...</div>');
+
+    $.get(url(ROUTES.history, ticketId))
+        .done((items) => {
+            if (!items.length) {
+                $body.html(`
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-history fa-2x mb-2"></i>
+                        <p class="mb-0">No history yet.</p>
+                    </div>`);
+                return;
+            }
+
+            const html = items.map((h) => {
+                const meta = getActionMeta(h.action);
+
+                const change = (h.old_value || h.new_value)
+                    ? `<div class="tl-change">
+                           <span class="badge bg-light text-dark border">${esc(h.old_value ?? '-')}</span>
+                           <i class="fas fa-arrow-right text-muted small"></i>
+                           <span class="badge bg-${meta.color}">${esc(h.new_value ?? '-')}</span>
+                       </div>`
+                    : '';
+
+                const remarks = h.remarks
+                    ? `<div class="tl-remarks">${esc(h.remarks)}</div>`
+                    : '';
+
+                return `
+                    <li>
+                        <span class="tl-dot bg-${meta.color}">
+                            <i class="fas ${meta.icon}"></i>
+                        </span>
+                        <div class="tl-card">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-1">
+                                <strong>${esc(meta.label)}</strong>
+                                <small class="text-muted">${formatDate(h.created_at)}</small>
+                            </div>
+                            <div class="small text-muted">
+                                <i class="fas fa-user fa-xs me-1"></i>${esc(h.user_name ?? 'System')}
+                            </div>
+                            ${change}
+                            ${remarks}
+                        </div>
+                    </li>`;
+            }).join('');
+
+            $body.html(`<ul class="history-timeline">${html}</ul>`);
+        })
+        .fail((xhr) => {
+            console.error('History error:', xhr.status, xhr.responseText);
+            $body.html(`<p class="text-danger mb-0">Failed to load history (${xhr.status}).</p>`);
+        });
+};
 
 $(document).on('click', '.assignBtn', function() {
     let ticketId = $(this).data('id');
@@ -384,6 +586,7 @@ $(document).ready(function () {
         serverSide: true,
         scrollX: true,
         ajax: "{{ route('myTask.fetchMyTaskTickets') }}",
+        createdRow: (row, data) => $(row).attr('data-id', data.id),
         columns: [
             { data: "id",          name: "id" },
             { data: "ticket_type", name: "ticket_type",
@@ -395,15 +598,15 @@ $(document).ready(function () {
                         'GGC Offices - Maintenance IR Form':'info',
                     };
                     const color = colors[data] || 'secondary';
-                    return `<span class="badge bg-${color}">${data}</span>`;
+                    return `<span class="badge bg-${color}">${esc(data)}</span>`;
                 }
             },
-            { data: "type_of_concern",       name: "type_of_concern" },
-            { data: "branch",       name: "branch" },
-            { data: "type_equipment_or_machine",       name: "type_equipment_or_machine" },
-            { data: "equipment_or_machine_brand",       name: "equipment_or_machine_brand" },
-            { data: "serial_number",       name: "serial_number" },
-            { data: "concern_description",       name: "concern_description" },
+            { data: "type_of_concern",            name: "type_of_concern" },
+            { data: "branch",                     name: "branch" },
+            { data: "type_equipment_or_machine",  name: "type_equipment_or_machine" },
+            { data: "equipment_or_machine_brand", name: "equipment_or_machine_brand" },
+            { data: "serial_number",              name: "serial_number" },
+            { data: "concern_description",        name: "concern_description" },
 
             {
                 data: "status",
@@ -479,9 +682,9 @@ $(document).ready(function () {
                     `;
                 }
             },
-            
-            { data: "reported_name",name: "reported_by" },
-            { data: "email",name: "email" },
+
+            { data: "reported_name", name: "reported_by" },
+            { data: "email",         name: "email" },
             {
                 data: "assignees",
                 name: "assignees",
@@ -491,7 +694,7 @@ $(document).ready(function () {
 
                     if (data && data.length > 0) {
                         data.forEach(user => {
-                            html += `<span class="badge bg-success">${user.name}</span> `;
+                            html += `<span class="badge bg-success">${esc(user.name)}</span> `;
                         });
                     } else {
                         html = '<span class="badge bg-secondary">Unassigned</span>';
@@ -510,35 +713,30 @@ $(document).ready(function () {
                     return html;
                 }
             },
-            { data: "updated_at",    name: "updated_at",
-                render: function(data) {
-                    return new Date(data).toLocaleString('en-US', {
-                        month: 'long', day: '2-digit', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit', hour12: true
-                    });
-                }
-            },
-            { data: "created_at",    name: "created_at",
-                render: function(data) {
-                    return new Date(data).toLocaleString('en-US', {
-                        month: 'long', day: '2-digit', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit', hour12: true
-                    });
-                }
-            },
-            { 
-                data: "file", 
+            { data: "updated_at", name: "updated_at", render: formatDate },
+            { data: "created_at", name: "created_at", render: formatDate },
+            {
+                data: "file",
                 name: "file",
                 render: function(data) {
                     if (!data) return '<span class="text-muted">No file</span>';
-                    return `<img src="/ticketing_system_maintenance/public/storage/${data}" 
+                    const src = `${STORAGE_URL}/${data}`;
+                    return `<img src="${src}"
                                 width="50" height="50"
                                 style="object-fit:cover; border-radius:5px; cursor:pointer;"
-                                class="view-image" 
-                                data-image="/ticketing_system_maintenance/public/storage/${data}">`;
+                                class="view-image"
+                                data-image="${src}">`;
                 }
             },
-            { data: "remarks",       name: "remarks" },
+            // Shows the latest remark; falls back to the old "remarks" field
+            // if the controller doesn't send "latest_remark" yet.
+            {
+                data: "latest_remark",
+                name: "latest_remark",
+                orderable: false,
+                defaultContent: '-',
+                render: (data, type, row) => esc(data || row.remarks || '-')
+            },
             {
                 data: "id",
                 orderable: false,
@@ -589,7 +787,60 @@ $(document).ready(function () {
         ]
     });
 
-    // Status dropdown: On hold / back to Pending  commit test
+    /* ------------------------------------------------------------------
+     * Row click -> ticket details + history
+     * ------------------------------------------------------------------ */
+    $('#ticketTable tbody').on('click', 'tr', function (e) {
+        // Ignore clicks on interactive elements inside the row
+        if ($(e.target).closest('button, a, img, .dropdown, .dropdown-menu').length) return;
+
+        const rowData = table.row(this).data();
+        if (!rowData) return;
+
+        const ticketId = rowData.id;
+
+        const fields = {
+            'Ticket Type':         rowData.ticket_type,
+            'Type of Concern':     rowData.type_of_concern,
+            'Clinic / Branch':     rowData.branch,
+            'Equipment':           rowData.type_equipment_or_machine,
+            'Brand':               rowData.equipment_or_machine_brand,
+            'Serial Number':       rowData.serial_number,
+            'Concern Description': rowData.concern_description,
+            'Status':              rowData.status,
+            'Reported By':         rowData.reported_name,
+            'Email':               rowData.email,
+            'Assigned To':         rowData.assignees?.map(u => u.name).join(', ') || 'Unassigned',
+            'Last Updated':        formatDate(rowData.updated_at),
+            'Created At':          formatDate(rowData.created_at),
+            'Remarks':             rowData.latest_remark || rowData.remarks || '-',
+        };
+
+        const rows = Object.entries(fields)
+            .map(([label, value]) => `
+                <tr>
+                    <th class="w-25">${label}</th>
+                    <td>${esc(value)}</td>
+                </tr>`)
+            .join('');
+
+        const image = rowData.file
+            ? `<div class="text-center mt-3">
+                   <img src="${STORAGE_URL}/${rowData.file}" class="img-fluid rounded" style="max-height:300px;">
+               </div>`
+            : '';
+
+        $('#detailId').text(ticketId);
+        $('#ticketDetailsBody').html(`<table class="table table-bordered mb-0">${rows}</table>${image}`);
+
+        // Always open on the Details tab, then load history
+        bootstrap.Tab.getOrCreateInstance('[data-bs-target="#detailsTab"]').show();
+        loadHistory(ticketId);
+
+        bootstrap.Modal.getOrCreateInstance('#ticketDetailsModal').show();
+    });
+
+    // Status dropdown: On hold / back to Pending
     $(document).on('click', '.change-status', function(e) {
         e.preventDefault();
 
@@ -666,8 +917,8 @@ $(document).ready(function () {
                 table.ajax.reload(null, false);
             },
             error: function(xhr) {
-                console.error(xhr.responseText);
-                alert('Failed updating ticket.');
+                console.error(xhr.status, xhr.responseText);
+                alert(xhr.responseJSON?.message ?? 'Failed updating ticket.');
             }
         });
     }

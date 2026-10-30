@@ -48,8 +48,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/ticket/task-assign', [TicketController::class, 'taskAssign'])->name('task_assign');
         Route::get('/ticket/get-maintenance-users', [TicketController::class, 'get_maintenance_users'])->name('get_maintenance_users');
 
+
         //Ticket form routes
         
+         Route::get('/ticket/{id}/details', [TicketController::class, 'details'])->name('ticketDetails');
+
         Route::get('/edit/edit-ticket-gaoc{id}', [TicketController::class, 'editGAOC'])->name('editTicketGaoc');
 
         Route::post('/store', [TicketController::class, 'store'])->name('store');
@@ -60,6 +63,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/change_status_ticket/{id}', [TicketController::class, 'updateStatus'])->name('update-ticket-status');
 
     });
+
+        Route::get('/ticket/{id}/history', [TicketController::class, 'history'])
+        ->name('ticket.history');
         // my task  routes
         Route::prefix('myTask')->as('myTask.')->group(function () {
             Route::get('/fetchMyTaskTickets', [MyTaskController::class, 'fetchMyTaskTickets'])->name('fetchMyTaskTickets');

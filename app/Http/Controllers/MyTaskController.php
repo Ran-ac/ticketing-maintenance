@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\Ticket;
+use App\Models\TicketLog;
 use App\Models\TicketAssigned;
 use Illuminate\Http\Request;
 
@@ -73,31 +74,40 @@ class MyTaskController extends Controller
         $start = $request->input('start', 0);
         $userId = auth()->id();
 
-    $query = Ticket::query()
-        ->with('assignees')
-        ->leftJoin('users as reporter', 'reporter.id', '=', 'ticket.reported_by')
-        ->leftJoin('users as resolved_by', 'resolved_by.id', '=', 'ticket.assigned_by')
-        ->leftJoin('clinics', 'clinics.id', '=', 'ticket.clinics_id')
-        ->join('ticket_assigned', 'ticket.id', '=', 'ticket_assigned.ticket_id')
-        ->select(
-            'ticket.*',
-            'reporter.name as reported_name',
-            'resolved_by.name as resolved_by',
-            'clinics.name as branch'
-        )
-    ->where(function ($q) {
-        $q->where('ticket.ticket_type', 'GAOC - Maintenance IR Form')
-            ->orWhere('ticket.ticket_type', 'Novodental - Maintenance IR Form')
-            ->orWhere('ticket.ticket_type', 'GSS - Maintenance IR Form')
-            ->orWhere('ticket.ticket_type', 'GGC Offices - Maintenance IR Form');
-    })
-        ->where('ticket_assigned.user_id', $userId)
-        ->distinct();
+        $query = Ticket::query()
+            ->with('assignees')
+            ->leftJoin('users as reporter', 'reporter.id', '=', 'ticket.reported_by')
+            ->leftJoin('users as resolved_by', 'resolved_by.id', '=', 'ticket.assigned_by')
+            ->leftJoin('clinics', 'clinics.id', '=', 'ticket.clinics_id')
+            ->join('ticket_assigned', 'ticket.id', '=', 'ticket_assigned.ticket_id')
+            ->select(
+                'ticket.*',
+                'reporter.name as reported_name',
+                'resolved_by.name as resolved_by',
+                'clinics.name as branch'
+            )
+            // NEW: latest remark from the ticket logs
+            ->addSelect([
+                'latest_remark' => TicketLog::select('remarks')
+                    ->whereColumn('ticket_logs.ticket_id', 'ticket.id')
+                    ->whereNotNull('remarks')
+                    ->where('remarks', '!=', '')
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id')
+                    ->limit(1),
+            ])
+            ->where(function ($q) {
+                $q->where('ticket.ticket_type', 'GAOC - Maintenance IR Form')
+                    ->orWhere('ticket.ticket_type', 'Novodental - Maintenance IR Form')
+                    ->orWhere('ticket.ticket_type', 'GSS - Maintenance IR Form')
+                    ->orWhere('ticket.ticket_type', 'GGC Offices - Maintenance IR Form');
+            })
+            ->where('ticket_assigned.user_id', $userId)
+            ->distinct();
 
         if ($request->filled('type_of_concern')) {
             $query->where('ticket.type_of_concern', $request->type_of_concern);
         }
-
 
         $recordsTotal = (clone $query)->count();
 
@@ -108,7 +118,9 @@ class MyTaskController extends Controller
                     ->orWhere('ticket.equipment_or_machine_brand', 'like', "%{$searchValue}%")
                     ->orWhere('ticket.concern_description', 'like', "%{$searchValue}%")
                     ->orWhere('reporter.name', 'like', "%{$searchValue}%")
-                    ->orWhere('clinics.name', 'like', "%{$searchValue}%");
+                    ->orWhere('clinics.name', 'like', "%{$searchValue}%")
+                    // NEW: search inside remarks (needs the `logs` relation on Ticket, same as clinics)
+                    ->orWhereHas('logs', fn ($lq) => $lq->where('remarks', 'like', "%{$searchValue}%"));
             });
         }
 

@@ -19,12 +19,11 @@
 
     <!-- Custom styles for this template-->
     <link href="{{ asset('css/sb-admin-2.min.css') }}" rel="stylesheet">
-	
+
 	<!-- DataTables CDN -->
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
 	<!-- Bootstrap CDN -->
-
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Optional: Bootstrap 5 Theme (better styling) -->
@@ -33,13 +32,85 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+    <style>
+        /* ---------- History timeline ---------- */
+        .history-timeline {
+            list-style: none;
+            margin: 0;
+            padding: 0 0 0 34px;
+            position: relative;
+        }
+
+        /* the vertical line */
+        .history-timeline::before {
+            content: '';
+            position: absolute;
+            left: 13px;
+            top: 4px;
+            bottom: 4px;
+            width: 2px;
+            background: #e3e6f0;
+        }
+
+        .history-timeline li {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+
+        .history-timeline li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* the colored dot with icon */
+        .history-timeline .tl-dot {
+            position: absolute;
+            left: -34px;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 0 0 4px #fff; /* gap between the dot and the line */
+        }
+
+        .history-timeline .tl-card {
+            background: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .history-timeline .tl-change {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .history-timeline .tl-remarks {
+            margin-top: 8px;
+            padding-left: 10px;
+            border-left: 3px solid #d1d3e2;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* clickable rows */
+        #ticketTable tbody tr { cursor: pointer; }
+    </style>
 
 </head>
- 
+
 <body id="page-top">
 
-    <!-- Page Wrapper --> 
+    <!-- Page Wrapper -->
     <div id="wrapper">
         <!-- Sidebar -->
             @include('partials.sidebar')
@@ -53,7 +124,7 @@
                     <!-- Topbar -->
                     @include('partials.navbar')
                     <!-- End of Topbar -->
-        
+
                 <main>
                     <div class="container-fluid">
                         <h1 class="mt-4">Tickets</h1>
@@ -79,9 +150,9 @@
                                             <th>Equipment or machine brand</th>
                                             <th>Serial number</th>
                                             <th>Concern description</th>
-                                            <th>Status</th>    
-                                            <th>Reported by</th>                                     
-                                            <th>Email</th>                                           
+                                            <th>Status</th>
+                                            <th>Reported by</th>
+                                            <th>Email</th>
                                             <th>Assigned by</th>
                                             <th>Created at</th>
                                             <th>File</th>
@@ -93,10 +164,10 @@
                                             <!--table populate here -->
                                         </tbody>
                                     </table>
-                                </div> 
+                                </div>
                             </div>
-                        </div> 
-                    </div> 
+                        </div>
+                    </div>
                 </main>
             </div>
             <!-- Footer -->
@@ -115,7 +186,7 @@
 		@include('partials.logout');
 	<!-- End of Logout -->
 
-                <!-- Create Ticket Modal -->
+        <!-- Create Ticket Modal -->
         <div class="modal fade" id="formModalCreate" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -128,7 +199,7 @@
             </div>
         </div>
 
-                <!-- Edit Ticket Modal -->
+        <!-- Edit Ticket Modal -->
         <div class="modal fade" id="formModalEdit" tabindex="-1" aria-labelledby="modalTitleEdit" aria-hidden="true">
             <div class="modal-dialog modal-l">
                 <div class="modal-content">
@@ -196,10 +267,10 @@
                         <h5 class="modal-title">Assign Users</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    
+
                     <div class="modal-body">
                         <input type="hidden" id="ticket_id">
-                        
+
                         <label for="assigned_user" class="form-label">Select Maintenance Users</label>
                         <select id="assigned_user" class="form-select" multiple placeholder="Search users...">
                             @forelse($users as $user)
@@ -209,7 +280,7 @@
                             @endforelse
                         </select>
                     </div>
-                    
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-success" id="saveAssign">Save</button>
@@ -218,7 +289,46 @@
             </div>
         </div>
 
-            
+        <!-- Ticket Details Modal (Details + History) -->
+        <div class="modal fade" id="ticketDetailsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">View Ticket #<span id="detailId"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <ul class="nav nav-tabs mb-3" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#detailsTab" type="button">
+                                    Details
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#historyTab" type="button">
+                                    History
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="detailsTab">
+                                <div id="ticketDetailsBody"></div>
+                            </div>
+                            <div class="tab-pane fade" id="historyTab">
+                                <div id="ticketHistoryBody"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Bootstrap core JavaScript-->
 
         <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
@@ -237,8 +347,7 @@
         <script src="{{ asset('js/demo/chart-area-demo.js') }}"></script>
         <script src="{{ asset('js/demo/chart-pie-demo.js') }}"></script>
 		<script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
-    
-		
+
 		<!-- jQuery -->
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 		<!-- DataTables JS -->
@@ -250,8 +359,99 @@
 </html>
 
 <script>
-    
+
 const isSuperAdmin = @json(auth()->user()->role === 'superadmin');
+
+/* ------------------------------------------------------------------
+ * Shared constants / helpers (used by the history log)
+ * ------------------------------------------------------------------ */
+const STORAGE_URL = '/ticketing_system_maintenance/public/storage';
+
+const ROUTES = {
+    history: "{{ route('ticket.history', ':id') }}",
+};
+
+const url = (template, id) => template.replace(':id', id);
+
+const esc = (value) => $('<div>').text(value ?? '').html();
+
+const formatDate = (value) =>
+    new Date(value).toLocaleString('en-US', {
+        month: 'long', day: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true,
+    });
+
+const ACTION_META = {
+    created:        { label: 'Ticket created',  color: 'primary',   icon: 'fa-plus' },
+    status_changed: { label: 'Status changed',  color: 'info',      icon: 'fa-exchange-alt' },
+    assigned:       { label: 'Assigned',        color: 'success',   icon: 'fa-user-check' },
+    edited:         { label: 'Edited',          color: 'warning',   icon: 'fa-pen' },
+    deleted:        { label: 'Deleted',         color: 'danger',    icon: 'fa-trash' },
+};
+
+const getActionMeta = (action) =>
+    ACTION_META[action] ?? {
+        label: (action ?? 'Update').replace(/_/g, ' '),
+        color: 'secondary',
+        icon: 'fa-circle',
+    };
+
+const loadHistory = (ticketId) => {
+    const $body = $('#ticketHistoryBody');
+    $body.html('<div class="text-center text-muted py-3">Loading history...</div>');
+
+    $.get(url(ROUTES.history, ticketId))
+        .done((items) => {
+            if (!items.length) {
+                $body.html(`
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-history fa-2x mb-2"></i>
+                        <p class="mb-0">No history yet.</p>
+                    </div>`);
+                return;
+            }
+
+            const html = items.map((h) => {
+                const meta = getActionMeta(h.action);
+
+                const change = (h.old_value || h.new_value)
+                    ? `<div class="tl-change">
+                           <span class="badge bg-light text-dark border">${esc(h.old_value ?? '-')}</span>
+                           <i class="fas fa-arrow-right text-muted small"></i>
+                           <span class="badge bg-${meta.color}">${esc(h.new_value ?? '-')}</span>
+                       </div>`
+                    : '';
+
+                const remarks = h.remarks
+                    ? `<div class="tl-remarks">${esc(h.remarks)}</div>`
+                    : '';
+
+                return `
+                    <li>
+                        <span class="tl-dot bg-${meta.color}">
+                            <i class="fas ${meta.icon}"></i>
+                        </span>
+                        <div class="tl-card">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-1">
+                                <strong>${esc(meta.label)}</strong>
+                                <small class="text-muted">${formatDate(h.created_at)}</small>
+                            </div>
+                            <div class="small text-muted">
+                                <i class="fas fa-user fa-xs me-1"></i>${esc(h.user_name ?? 'System')}
+                            </div>
+                            ${change}
+                            ${remarks}
+                        </div>
+                    </li>`;
+            }).join('');
+
+            $body.html(`<ul class="history-timeline">${html}</ul>`);
+        })
+        .fail((xhr) => {
+            console.error('History error:', xhr.status, xhr.responseText);
+            $body.html(`<p class="text-danger mb-0">Failed to load history (${xhr.status}).</p>`);
+        });
+};
 
 $(document).ready(function() {
     let tomSelect;
@@ -260,7 +460,7 @@ $(document).ready(function() {
         if (!tomSelect) {
             // Fetch users via AJAX
             $.ajax({
-                url: "{{ route('ticket.get_maintenance_users') }}", // Create this route
+                url: "{{ route('ticket.get_maintenance_users') }}",
                 type: "GET",
                 success: function(users) {
                     tomSelect = new TomSelect('#assigned_user', {
@@ -291,6 +491,7 @@ $(document).ready(function() {
             tomSelect.clear();
         }
     });
+
     // Save assign click
     $('#saveAssign').on('click', function(e) {
         e.preventDefault();
@@ -315,7 +516,7 @@ $(document).ready(function() {
                     alert('Users assigned successfully!');
                     $('#assignModal').modal('hide');
                     $('#assigned_user').val(null).trigger('change');
-                    $('#ticketTable').DataTable().ajax.reload();
+                    $('#ticketTable').DataTable().ajax.reload(null, false);
                 }
             },
             error: function(xhr) {
@@ -329,7 +530,6 @@ $(document).ready(function() {
 const routeMap = {
     'GAOC - Maintenance IR Form':       "{{ route('ticket.gaoc') }}",
     'Novodental - Maintenance IR Form': "{{ route('ticket.novo') }}",
-
     'GSS - Maintenance IR Form':        "{{ route('ticket.gss') }}",
     'GGC Offices - Maintenance IR Form': "{{ route('ticket.gcc') }}",
 };
@@ -360,14 +560,13 @@ document.getElementById('ticketForm').addEventListener('submit', function(e) {
     });
 });
 
-    $(document).on('click', '.view-image', function () {
-        let imgSrc = $(this).data('image');
-            $('#modalImage').attr('src', imgSrc);
-            $('#imageModal').modal('show');
-    });
+$(document).on('click', '.view-image', function () {
+    let imgSrc = $(this).data('image');
+    $('#modalImage').attr('src', imgSrc);
+    $('#imageModal').modal('show');
+});
 
-
-    var csrfToken = $('meta[name="csrf-token"]').attr('content');
+var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
 if (csrfToken) {
     $.ajaxSetup({
@@ -379,12 +578,13 @@ if (csrfToken) {
 }
 
 $(document).ready(function () {
-        let table = $("#ticketTable").DataTable({
-            processing: true,
-            serverSide: true,
-            scrollX: true,
-            ajax: "{{ route('ticket.fetchOfficeTicketData') }}",
-columns: [
+    let table = $("#ticketTable").DataTable({
+        processing: true,
+        serverSide: true,
+        scrollX: true,
+        ajax: "{{ route('ticket.fetchOfficeTicketData') }}",
+        createdRow: (row, data) => $(row).attr('data-id', data.id),
+        columns: [
             { data: "id",          name: "id" },
             { data: "ticket_type", name: "ticket_type",
                 render: function(data) {
@@ -395,14 +595,14 @@ columns: [
                         'GGC Offices - Maintenance IR Form':'info',
                     };
                     const color = colors[data] || 'secondary';
-                    return `<span class="badge bg-${color}">${data}</span>`;
+                    return `<span class="badge bg-${color}">${esc(data)}</span>`;
                 }
             },
-            { data: "branch",       name: "branch" },
-            { data: "type_equipment_or_machine",       name: "type_equipment_or_machine" },
-            { data: "equipment_or_machine_brand",       name: "equipment_or_machine_brand" },
-            { data: "serial_number",       name: "serial_number" },
-            { data: "concern_description",       name: "concern_description" },
+            { data: "branch",                     name: "branch" },
+            { data: "type_equipment_or_machine",  name: "type_equipment_or_machine" },
+            { data: "equipment_or_machine_brand", name: "equipment_or_machine_brand" },
+            { data: "serial_number",              name: "serial_number" },
+            { data: "concern_description",        name: "concern_description" },
 
             { data: "status", name: "status",
                 render: function(data) {
@@ -414,11 +614,11 @@ columns: [
                         'Done':     'text-success',
                         'Pending':  'text-secondary',
                     };
-                    return `<span class="${map[data] ?? ''}">${data}</span>`;
+                    return `<span class="${map[data] ?? ''}">${esc(data)}</span>`;
                 }
             },
-            { data: "reported_name",name: "reported_by" },
-            { data: "email",name: "email" },
+            { data: "reported_name", name: "reported_by" },
+            { data: "email",         name: "email" },
             {
                 data: "assignees",
                 name: "assignees",
@@ -429,7 +629,7 @@ columns: [
                     // Show assigned users as badges
                     if (data && data.length > 0) {
                         data.forEach(user => {
-                            html += `<span class="badge bg-success">${user.name}</span> `;
+                            html += `<span class="badge bg-success">${esc(user.name)}</span> `;
                         });
                     } else {
                         html = '<span class="badge bg-secondary">Unassigned</span>';
@@ -437,7 +637,7 @@ columns: [
 
                     // Add assign button only for superadmin
                     if (isSuperAdmin) {
-                        html += `<button 
+                        html += `<button
                                     class="btn btn-primary assignBtn py-0 px-2 btn-sm ms-2"
                                     data-id="${row.id}"
                                     data-bs-toggle="modal"
@@ -449,27 +649,21 @@ columns: [
                     return html;
                 }
             },
-            { data: "created_at",    name: "created_at",
-                render: function(data) {
-                    return new Date(data).toLocaleString('en-US', {
-                        month: 'long', day: '2-digit', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit', hour12: true
-                    });
-                }
-            },
+            { data: "created_at", name: "created_at", render: formatDate },
             { data: "file", name: "file",
                 render: function(data) {
                     if (!data) return '<span class="text-muted">No file</span>';
-                    return `<img src="/storage/${data}" width="50" height="50"
+                    const src = `${STORAGE_URL}/${data}`;
+                    return `<img src="${src}" width="50" height="50"
                                 style="object-fit:cover; border-radius:5px; cursor:pointer;"
-                                class="view-image" data-image="/storage/${data}">`;
+                                class="view-image" data-image="${src}">`;
                 }
             },
-            { data: "remarks",name: "remarks" },
+            { data: "latest_remark", name: "latest_remark", defaultContent: '-', render: (data) => data || '-' },
             { data: "id", orderable: false,
                 render: function(data, type, row) {
                     if (row.status === 'Done') {
-                        return `<div class="text-success"><small>Resolved by ${row.resolved_by ?? '—'}</small></div>`;
+                        return `<div class="text-success"><small>Resolved by ${esc(row.resolved_by ?? '—')}</small></div>`;
                     }
                     return `<div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-info openEditModal"   data-id="${data}">Edit</button>
@@ -478,45 +672,94 @@ columns: [
                 }
             }
         ]
-        });
-
-
-
-        $(document).on('click', '.openEditModal', function (event) {
-			event.preventDefault();
-			let ticketId = $(this).data('id');
-
-	   		$.get("{{ route('ticket.editTicketGaoc', ':id') }}".replace(':id', ticketId), function (data) {
-                $('#modalContentEdit').html(data);
-                $('#formModalEdit').modal('show');
-            }).fail(function(xhr) {
-                console.error("Error loading edit modal:", xhr.responseText);
-            });
-		});
-
-        $(document).on("click", ".deleteTicket", function (event) {
-			event.preventDefault();
-
-			let ticketId = $(this).data("id");
-
-			if (!confirm("Are you sure you want to delete this ticket?")) return;
-
-			$.ajax({
-				type: "DELETE",
-				url: "{{ route('ticket.ticket-destroy', ':id') }}".replace(':id', ticketId),
-				data: {
-					_token: "{{ csrf_token() }}"
-				},
-				success: function (response) {
-					alert("Ticket deleted successfully!");
-					$('#ticketTable').DataTable().ajax.reload();
-				},
-				error: function (xhr, status, error) {
-					console.error("Error deleting ticket:", xhr.responseText);
-					alert("Failed to delete ticket.");
-				}
-			});
-		});
     });
+
+    /* ------------------------------------------------------------------
+     * Row click -> ticket details + history
+     * ------------------------------------------------------------------ */
+    $('#ticketTable tbody').on('click', 'tr', function (e) {
+        // Ignore clicks on interactive elements inside the row
+        if ($(e.target).closest('button, a, img').length) return;
+
+        const rowData = table.row(this).data();
+        if (!rowData) return;
+
+        const ticketId = rowData.id;
+
+        const fields = {
+            'Ticket Type':         rowData.ticket_type,
+            'Clinic / Branch':     rowData.branch,
+            'Equipment':           rowData.type_equipment_or_machine,
+            'Brand':               rowData.equipment_or_machine_brand,
+            'Serial Number':       rowData.serial_number,
+            'Concern Description': rowData.concern_description,
+            'Status':              rowData.status,
+            'Reported By':         rowData.reported_name,
+            'Email':               rowData.email,
+            'Assigned To':         rowData.assignees?.map(u => u.name).join(', ') || 'Unassigned',
+            'Created At':          formatDate(rowData.created_at),
+            'Remarks':             rowData.latest_remark || rowData.remarks || '-',
+        };
+
+        const rows = Object.entries(fields)
+            .map(([label, value]) => `
+                <tr>
+                    <th class="w-25">${label}</th>
+                    <td>${esc(value)}</td>
+                </tr>`)
+            .join('');
+
+        const image = rowData.file
+            ? `<div class="text-center mt-3">
+                   <img src="${STORAGE_URL}/${rowData.file}" class="img-fluid rounded" style="max-height:300px;">
+               </div>`
+            : '';
+
+        $('#detailId').text(ticketId);
+        $('#ticketDetailsBody').html(`<table class="table table-bordered mb-0">${rows}</table>${image}`);
+
+        // Always open on the Details tab, then load history
+        bootstrap.Tab.getOrCreateInstance('[data-bs-target="#detailsTab"]').show();
+        loadHistory(ticketId);
+
+        bootstrap.Modal.getOrCreateInstance('#ticketDetailsModal').show();
+    });
+
+    $(document).on('click', '.openEditModal', function (event) {
+        event.preventDefault();
+        let ticketId = $(this).data('id');
+
+        $.get("{{ route('ticket.editTicketGaoc', ':id') }}".replace(':id', ticketId), function (data) {
+            $('#modalContentEdit').html(data);
+            $('#formModalEdit').modal('show');
+        }).fail(function(xhr) {
+            console.error("Error loading edit modal:", xhr.responseText);
+        });
+    });
+
+    $(document).on("click", ".deleteTicket", function (event) {
+        event.preventDefault();
+
+        let ticketId = $(this).data("id");
+
+        if (!confirm("Are you sure you want to delete this ticket?")) return;
+
+        $.ajax({
+            type: "DELETE",
+            url: "{{ route('ticket.ticket-destroy', ':id') }}".replace(':id', ticketId),
+            data: {
+                _token: "{{ csrf_token() }}"
+            },
+            success: function (response) {
+                alert("Ticket deleted successfully!");
+                $('#ticketTable').DataTable().ajax.reload();
+            },
+            error: function (xhr, status, error) {
+                console.error("Error deleting ticket:", xhr.responseText);
+                alert("Failed to delete ticket.");
+            }
+        });
+    });
+});
 
 </script>
