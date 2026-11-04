@@ -17,24 +17,24 @@ class TicketController extends Controller
 
     public function fetchClinicalTicketData(Request $request)
     {
-$columns = [
-    'ticket.id',                          // 0  Id
-    'ticket.ticket_type',                 // 1  Ticket Type
-    'ticket.type_of_concern',             // 2  Type of concern
-    'clinics.name',                       // 3  Clinics name
-    'ticket.type_equipment_or_machine',   // 4  Equipment or machine
-    'ticket.equipment_or_machine_brand',  // 5  Brand
-    'ticket.serial_number',               // 6  Serial number
-    'ticket.concern_description',         // 7  Concern description
-    'ticket.status',                      // 8  Status
-    'reporter.name',                      // 9  Reported by
-    'ticket.email',                       // 10 Email
-    null,                                 // 11 Assigned (not sortable)
-    'ticket.created_at',                  // 12 Created at
-    'ticket.file',                        // 13 File
-    null,                                 // 14 Remarks (not sortable)
-    null,                                 // 15 Action
-];
+        $columns = [
+            'ticket.id',                         
+            'ticket.ticket_type',                 
+            'ticket.type_of_concern',             
+            'clinics.name',                       
+            'ticket.type_equipment_or_machine',   
+            'ticket.equipment_or_machine_brand',  
+            'ticket.serial_number',               
+            'ticket.concern_description',         
+            'ticket.status',                      
+            'reporter.name',                      
+            'ticket.email',                       
+            null,                                 
+            'ticket.created_at',                  
+            'ticket.file',                        
+            null,                                 
+            null,                                 
+        ];
 
         $orderColumnIndex = (int) $request->input('order.0.column', 0);
         $orderDir = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
