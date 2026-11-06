@@ -40,16 +40,32 @@
                         </span>
                     @endif
                     </a>
-                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar"> 
-                        <div class="bg-white py-2 collapse-inner rounded"> 
-                            <h6 class="collapse-header">Ticketing Type:</h6> 
-                            <a class="collapse-item" href="{{ route('ticket.index_clinics') }}">GAOC / Novodental - IR</a>
-                            @unless(auth()->user()->role === 'fdo')
+                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <h6 class="collapse-header">Ticketing Type:</h6>
+                            @php
+                                $user = auth()->user()->loadMissing('ticketClinic');
+                                $company = strtolower(trim((string) optional($user->ticketClinic)->company));
+
+                                $isSuperAdmin = $user->role === 'superadmin';
+                                $clinicCompanies = ['gaoc', 'novodental'];
+                                $officeCompanies = ['samurai', 'specialign', 'gti'];
+                            @endphp
+
+                            {{-- Clinic Ticketing --}}
+                            @if($isSuperAdmin || in_array($company, $clinicCompanies))
+                                <a class="collapse-item" href="{{ route('ticket.index_clinics') }}">
+                                    GAOC / Novodental - IR
+                                </a>
+                            @endif
+
+                            {{-- Office Ticketing --}}
+                            @if($isSuperAdmin || in_array($company, $officeCompanies))
                                 <a class="collapse-item" href="{{ route('ticket.index_offices') }}">
                                     GSS / GGC OFFICE - IR
                                 </a>
-                            @endunless
-                        </div> 
+                            @endif
+                        </div>
                     </div>
                 </li>
 

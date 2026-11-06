@@ -67,8 +67,13 @@ class User extends Authenticatable
     }
 
     public function clinic()
-{
-    return $this->belongsTo(Clinic::class, 'clinics_id');
-}
+    {
+        return $this->belongsTo(Clinics::class, 'clinics_id');
+    }
+
+    public function ticketClinic()
+    {
+        return $this->belongsTo(Clinics::class, 'branch', 'id');
+    }
 
 }
