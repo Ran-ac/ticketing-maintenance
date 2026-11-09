@@ -1,18 +1,17 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route ('ticket.TicketingDashboard') }}">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-tools"></i>
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('ticket.TicketingDashboard') }}">
+                <div class="sidebar-brand-icon">
+                    <img src="{{ asset('img/logos/main_logo_gaoc.png') }}" alt="Ticketing Maintenance Logo" style="height: 70px; width: auto;">
                 </div>
-                <div class="sidebar-brand-text mx-3">Ticketing <sup>maintenance</sup></div>
             </a>
 
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
 
             <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a class="nav-link" href="{{ route ('ticket.TicketingDashboard') }}">
                     <i class="fas fa-fw fas fa-home"></i>
                     <span>Dashboard</span></a>
