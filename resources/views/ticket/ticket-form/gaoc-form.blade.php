@@ -16,41 +16,41 @@
     @csrf
     <!-- type of concern -->
     <div class="mb-3">
-        <label class="form-label fw-semibold">Type of Concern <span class="text-danger">*</span></label>
+        <label class="form-label fw-semibold">
+            Type of Concern <span class="text-danger">*</span>
+        </label>
+
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="type_of_concern" id="concern1" value="Clinical">
+            <input class="form-check-input @error('type_of_concern') is-invalid @enderror"
+                type="radio"
+                name="type_of_concern"
+                id="concern1"
+                value="Clinical"
+                {{ old('type_of_concern') === 'Clinical' ? 'checked' : '' }}
+                required>
             <label class="form-check-label" for="concern1">
                 Clinical (dental equipment/machine/instruments)
             </label>
         </div>
+
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="type_of_concern" id="concern2" value="Non Clinical">
+            <input class="form-check-input @error('type_of_concern') is-invalid @enderror"
+                type="radio"
+                name="type_of_concern"
+                id="concern2"
+                value="Non Clinical"
+                {{ old('type_of_concern') === 'Non Clinical' ? 'checked' : '' }}
+                required>
             <label class="form-check-label" for="concern2">
                 Non Clinical (non dental equipment)
             </label>
         </div>
+
         @error('type_of_concern')
             <div class="alert alert-danger mt-2">{{ $message }}</div>
         @enderror
     </div>
-
-    {{-- <!-- Branch -->
-    <div class="mb-3">
-        <label for="branch_id" class="form-label fw-semibold">Branch <span class="text-danger">*</span></label>
-        <select class="form-select" name="branch_id" id="branch_id">
-            <option value="">Please select branch</option>
-            @foreach ($clinic as $clinics)
-                <option value="{{ $clinics->id }}"
-                    {{ old('branch_id', $ticket->branch_id ?? '') == $clinics->id ? 'selected' : '' }}>
-                    {{ $clinics->name }}
-                </option>
-            @endforeach
-        </select>
-        @error('branch_id')
-            <div class="alert alert-danger mt-2">{{ $message }}</div>
-        @enderror
-    </div> --}}
-
+    
     <!-- Equipment or machine -->
     <div class="mb-3">
         <label for="type_equipment_or_machine" class="form-label fw-semibold">
