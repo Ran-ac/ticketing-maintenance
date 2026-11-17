@@ -24,50 +24,50 @@
             <div class="sidebar-heading">
                 Home
             </div>
-            <!-- Nav Item - Pages Collapse Menu -->
-                <li class="nav-item"> 
-                    <a class="nav-link collapsed d-flex align-items-center" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                        aria-expanded="true" aria-controls="collapseTwo">
-                        <i class="fas fa-fw fa-tasks"></i>
-                        <span>Ticket Manager</span>
+           <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
+                    aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fas fa-fw fa-tasks"></i>
+                    <span>Ticket Manager</span>
 
                     @if(in_array(auth()->user()->role, ['fdo']))
-                        <span id="ticketBadge" class="badge badge-danger badge-pill ml-auto mr-1"
+                        <span id="ticketBadge" class="badge badge-danger badge-pill float-right mr-1"
                             style="font-size: 0.6rem; display: none;">
                             <i class="fas fa-bell" style="font-size: 0.555rem;"></i>
                             <span id="ticketCount">0</span>
                         </span>
                     @endif
-                    </a>
-                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                        <div class="bg-white py-2 collapse-inner rounded">
-                            <h6 class="collapse-header">Ticketing Type:</h6>
-                            @php
-                                $user = auth()->user()->loadMissing('ticketClinic');
-                                $company = strtolower(trim((string) optional($user->ticketClinic)->company));
+                </a>
 
-                                $isSuperAdmin = $user->role === 'superadmin';
-                                $clinicCompanies = ['gaoc', 'novodental'];
-                                $officeCompanies = ['samurai', 'specialign', 'gti'];
-                            @endphp
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Ticketing Type:</h6>
+                        @php
+                            $user = auth()->user()->loadMissing('ticketClinic');
+                            $company = strtolower(trim((string) optional($user->ticketClinic)->company));
 
-                            {{-- Clinic Ticketing --}}
-                            @if($isSuperAdmin || in_array($company, $clinicCompanies))
-                                <a class="collapse-item" href="{{ route('ticket.index_clinics') }}">
-                                    GAOC / Novodental - IR
-                                </a>
-                            @endif
+                            $isSuperAdmin = $user->role === 'superadmin';
+                            $clinicCompanies = ['gaoc', 'novodental'];
+                            $officeCompanies = ['samurai', 'specialign', 'gti'];
+                        @endphp
 
-                            {{-- Office Ticketing --}}
-                            @if($isSuperAdmin || in_array($company, $officeCompanies))
-                                <a class="collapse-item" href="{{ route('ticket.index_offices') }}">
-                                    GSS / GGC OFFICE - IR
-                                </a>
-                            @endif
-                        </div>
+                        {{-- Clinic Ticketing --}}
+                        @if($isSuperAdmin || in_array($company, $clinicCompanies))
+                            <a class="collapse-item" href="{{ route('ticket.index_clinics') }}">
+                                GAOC / Novodental - IR
+                            </a>
+                        @endif
+
+                        {{-- Office Ticketing --}}
+                        @if($isSuperAdmin || in_array($company, $officeCompanies))
+                            <a class="collapse-item" href="{{ route('ticket.index_offices') }}">
+                                GSS / GGC OFFICE - IR
+                            </a>
+                        @endif
                     </div>
-                </li>
-
+                </div>
+            </li>
             <!-- Nav Item - Tables -->
             @unless(auth()->user()->role === 'fdo')
                 <li class="nav-item">
@@ -92,7 +92,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('clinic.index') }}">
                             <i class="fas fa-fw fas fa-clinic-medical"></i>
-                            <span>Clinics</span></a>
+                            <span>Company</span></a>
                     </li>
 
                                 <!-- Nav Item - Tables -->
