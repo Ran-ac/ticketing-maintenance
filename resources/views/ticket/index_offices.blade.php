@@ -456,31 +456,16 @@ const loadHistory = (ticketId) => {
 $(document).ready(function() {
     let tomSelect;
 
-    $('#assignModal').on('show.bs.modal', function() {
-        if (!tomSelect) {
-            // Fetch users via AJAX
-            $.ajax({
-                url: "{{ route('ticket.get_maintenance_users') }}",
-                type: "GET",
-                success: function(users) {
-                    tomSelect = new TomSelect('#assigned_user', {
-                        options: users.map(user => ({
-                            value: user.id,
-                            text: user.name
-                        })),
-                        create: false,
-                        placeholder: 'Search and select users...',
-                        searchField: 'text',
-                        maxItems: null,
-                        plugins: {
-                            remove_button: {
-                                title: 'Remove this item'
-                            }
-                        }
-                    });
-                }
-            });
-        }
+    $('#assignModal').on('show.bs.modal', function () {
+        if (tomSelect) return;
+
+        tomSelect = new TomSelect('#assigned_user', {
+            create: false,
+            placeholder: 'Search and select users...',
+            searchField: 'text',
+            maxItems: null, // unlimited selections
+            plugins: { remove_button: { title: 'Remove this item' } },
+        });
     });
 
     // Assign button click
