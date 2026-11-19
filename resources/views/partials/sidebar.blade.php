@@ -1,9 +1,13 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('ticket.TicketingDashboard') }}">
-                <div class="sidebar-brand-icon">
-                    <img src="{{ asset('img/logos/main_logo_gaoc.png') }}" alt="Ticketing Maintenance Logo" style="height: 70px; width: auto;">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center h-auto py-3"
+            href="{{ route('ticket.TicketingDashboard') }}">
+                <div class="sidebar-brand-icon w-100 text-center">
+                    <img src="{{ asset('img/logos/main_logo_gaoc.png') }}"
+                        alt="Ticketing Maintenance Logo"
+                        class="img-fluid"
+                        style="max-height: 70px;">
                 </div>
             </a>
 
