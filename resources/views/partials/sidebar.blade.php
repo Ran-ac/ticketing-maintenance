@@ -51,20 +51,21 @@
                             $user = auth()->user()->loadMissing('ticketClinic');
                             $company = strtolower(trim((string) optional($user->ticketClinic)->company));
 
-                            $isSuperAdmin = $user->role === 'superadmin';
+                            $hasFullAccess = in_array($user->role, ['superadmin', 'head']);
+
                             $clinicCompanies = ['gaoc', 'novodental'];
                             $officeCompanies = ['samurai', 'specialign', 'gti'];
                         @endphp
 
                         {{-- Clinic Ticketing --}}
-                        @if($isSuperAdmin || in_array($company, $clinicCompanies))
+                        @if($hasFullAccess || in_array($company, $clinicCompanies))
                             <a class="collapse-item" href="{{ route('ticket.index_clinics') }}">
                                 GAOC / Novodental - IR
                             </a>
                         @endif
 
                         {{-- Office Ticketing --}}
-                        @if($isSuperAdmin || in_array($company, $officeCompanies))
+                        @if($hasFullAccess || in_array($company, $officeCompanies))
                             <a class="collapse-item" href="{{ route('ticket.index_offices') }}">
                                 GSS / GGC OFFICE - IR
                             </a>

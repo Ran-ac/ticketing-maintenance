@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Clinics;
+use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\TicketLog;
@@ -254,6 +255,19 @@ class TicketController extends Controller
             }
         }
 
+    public function getUsersByDepartment($departmentId)
+    {
+        $users = User::whereIn('id', function ($query) use ($departmentId) {
+                $query->select('user_id')
+                    ->from('user_department')
+                    ->where('department_id', $departmentId);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($users);
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $ticket = Ticket::findOrFail($id);
@@ -315,15 +329,14 @@ class TicketController extends Controller
             
 
 
-    public function index_clinics()
-    {
-        $users = User::where('role', 'Maintenance')
-                ->select('id', 'name')
-                ->get();
+        public function index_clinics()
+        {
+            $users = User::where('role', 'Maintenance')->select('id', 'name')->get();
+            $departments = Department::whereIn('name', ['Maintenance', 'Purchasing Department', 'GTI Department'])->orderBy('name')->get();
+            $ticket = Ticket::with('resolvedBy')->get();
 
-        $ticket = Ticket::with('resolvedBy')->get();
-        return view('ticket.index_clinics', compact('ticket','users'));
-    }
+            return view('ticket.index_clinics', compact('ticket', 'users', 'departments'));
+        }
 
         public function index_offices()
         {
@@ -333,7 +346,7 @@ class TicketController extends Controller
             
             $ticket = Ticket::all();
 
-            return view('ticket.index_offices', compact('ticket', 'users')); // ✅ Both variables
+            return view('ticket.index_offices', compact('ticket', 'users'));
         }
 
         // Add this new method
@@ -385,8 +398,8 @@ class TicketController extends Controller
             try {
                 $request->validate([
                     'ticket_type'                => 'required|string|max:255',
-                    'type_equipment_or_machine'  => 'required|string|max:255',
-                    'equipment_or_machine_brand' => 'required|string|max:255',
+                    'type_equipment_or_machine'  => 'nullable|string|max:255',
+                    'equipment_or_machine_brand' => 'nullable|string|max:255',
                     'serial_number'              => 'required|string|max:255',
                     'concern_description'        => 'required|string|max:255',
                     'file'                       => 'nullable|file|mimes:jpg,jpeg,png,pdf',

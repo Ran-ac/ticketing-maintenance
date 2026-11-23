@@ -88,7 +88,10 @@ Route::middleware('auth')->group(function () {
                 ->name('myTask.for-approval-count');
         });
 
-        Route::post('/my-task/mark-viewed', [YourController::class, 'markViewed'])->name('myTask.mark-viewed');
+        Route::get('/ticket/users-by-department/{department}', [TicketController::class, 'getUsersByDepartment'])
+        ->name('ticket.users_by_department');
+
+        Route::post('/my-task/mark-viewed', [MyTaskController::class, 'markViewed'])->name('myTask.mark-viewed');
 
 
         // Clinic routes

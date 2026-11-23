@@ -218,7 +218,7 @@
                 <div class="modal-content">
 
                     <div class="modal-header">
-                        <h5 class="modal-title">Create New Ticketff</h5>
+                        <h5 class="modal-title">Create New Ticket</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -260,32 +260,36 @@
             </div>
         </div>
         <!-- Assign Modal -->
-    <div class="modal fade" id="assignModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Assign Users</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
+        <div class="modal fade" id="assignModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Assign Users</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
 
-                <div class="modal-body">
-                    <input type="hidden" id="ticket_id">
+                    <div class="modal-body">
+                        <input type="hidden" id="ticket_id">
 
-                    <label for="assigned_user" class="form-label">Select Users</label>
-                    <select id="assigned_user" class="form-select" multiple placeholder="Search users...">
-                        @foreach($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                        <label for="assigned_department" class="form-label">Department</label>
+                        <select id="assigned_department" class="form-select mb-3">
+                            <option value="">Select department</option>
+                            @foreach($departments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success" id="saveAssign">Save</button>
+                        <label for="assigned_user" class="form-label">Select Users</label>
+                        <select id="assigned_user" multiple placeholder="Select a department first..."></select>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success" id="saveAssign">Save</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
         <!-- Ticket Details Modal -->
 <!-- Ticket Details Modal -->
@@ -682,55 +686,81 @@ const getActionMeta = (action) =>
         $('#modalImage').attr('src', $(this).data('image'));
         $('#imageModal').modal('show');
     });
+ROUTES.usersByDepartment = "{{ route('ticket.users_by_department', ':id') }}";
 
-    /* ------------------------------------------------------------------
-     * Assign users (Tom Select)
-     * ------------------------------------------------------------------ */
-    let tomSelect = null;
+const tomSelect = new TomSelect('#assigned_user', {
+    create: false,
+    valueField: 'id',
+    labelField: 'name',
+    searchField: 'name',
+    maxItems: null,
+    placeholder: 'Select a department first...',
+    plugins: { remove_button: { title: 'Remove this item' } },
+});
+tomSelect.disable();
 
-    $('#assignModal').on('show.bs.modal', function () {
-        if (tomSelect) return;
+const resetAssignModal = () => {
+    $('#assigned_department').val('');
+    tomSelect.clear();
+    tomSelect.clearOptions();
+    tomSelect.disable();
+};
 
-        tomSelect = new TomSelect('#assigned_user', {
-            create: false,
-            placeholder: 'Search and select users...',
-            searchField: 'text',
-            maxItems: null, // unlimited selections
-            plugins: { remove_button: { title: 'Remove this item' } },
-        });
+$(document).on('click', '.assignBtn', function () {
+    $('#ticket_id').val($(this).data('id'));
+    resetAssignModal();
+});
+
+$('#assigned_department').on('change', function () {
+    const departmentId = $(this).val();
+
+    tomSelect.clear();
+    tomSelect.clearOptions();
+
+    if (!departmentId) {
+        tomSelect.disable();
+        return;
+    }
+
+    tomSelect.disable();
+    $.get(url(ROUTES.usersByDepartment, departmentId))
+        .done((deptUsers) => {
+            tomSelect.addOptions(deptUsers);
+            tomSelect.enable();
+            tomSelect.settings.placeholder = deptUsers.length
+                ? 'Search and select users...'
+                : 'No users in this department';
+            tomSelect.inputState();
+        })
+        .fail(ajaxError('Failed to load users for this department.'));
+});
+
+$('#saveAssign').on('click', function (e) {
+    e.preventDefault();
+
+    const ticketId      = $('#ticket_id').val();
+    const assignedUsers = tomSelect.getValue();
+
+    if (!ticketId || !assignedUsers?.length) {
+        alert('Please select a department and at least one user');
+        return;
+    }
+
+    $.ajax({
+        url: ROUTES.assign,
+        type: 'POST',
+        data: { ticket_id: ticketId, user_ids: assignedUsers, _token: csrfToken },
+        success: (response) => {
+            if (!response.success) return;
+
+            alert('Users assigned successfully!');
+            $('#assignModal').modal('hide');
+            resetAssignModal();
+            reloadTable(false);
+        },
+        error: (xhr) => alert('Error: ' + (xhr.responseJSON?.message || 'Unknown error')),
     });
-
-    $(document).on('click', '.assignBtn', function () {
-        $('#ticket_id').val($(this).data('id'));
-        tomSelect?.clear();
-    });
-
-    $('#saveAssign').on('click', function (e) {
-        e.preventDefault();
-
-        const ticketId      = $('#ticket_id').val();
-        const assignedUsers = $('#assigned_user').val();
-
-        if (!ticketId || !assignedUsers?.length) {
-            alert('Please select ticket and at least one user');
-            return;
-        }
-
-        $.ajax({
-            url: ROUTES.assign,
-            type: 'POST',
-            data: { ticket_id: ticketId, user_ids: assignedUsers, _token: csrfToken },
-            success: (response) => {
-                if (!response.success) return;
-
-                alert('Users assigned successfully!');
-                $('#assignModal').modal('hide');
-                tomSelect?.clear();
-                reloadTable(false);
-            },
-            error: (xhr) => alert('Error: ' + (xhr.responseJSON?.message || 'Unknown error')),
-        });
-    });
+});
 
     /* ------------------------------------------------------------------
      * Create ticket (pick type -> load form into modal)
