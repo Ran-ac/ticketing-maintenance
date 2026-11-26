@@ -491,9 +491,6 @@ const renderActions = (id, type, row) => {
         </div>`;
 };
 
-    /* ------------------------------------------------------------------
-     * DataTable
-     * ------------------------------------------------------------------ */
     const table = $('#ticketTable').DataTable({
         processing: true,
         serverSide: true,

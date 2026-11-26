@@ -47,15 +47,15 @@
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Ticketing Type:</h6>
-                        @php
-                            $user = auth()->user()->loadMissing('ticketClinic');
-                            $company = strtolower(trim((string) optional($user->ticketClinic)->company));
+                            @php
+                                $user = auth()->user()->loadMissing('ticketClinic');
+                                $company = strtolower(trim((string) optional($user->ticketClinic)->company));
 
-                            $hasFullAccess = in_array($user->role, ['superadmin', 'Admin']);
+                                $hasFullAccess = in_array($user->role, ['superadmin', 'head', 'Admin']);
 
-                            $clinicCompanies = ['gaoc', 'novodental'];
-                            $officeCompanies = ['samurai', 'specialign', 'gti'];
-                        @endphp
+                                $clinicCompanies = ['gaoc', 'novodental'];
+                                $officeCompanies = ['samurai', 'specialign', 'gti'];
+                            @endphp
 
                         {{-- Clinic Ticketing --}}
                         @if($hasFullAccess || in_array($company, $clinicCompanies))
