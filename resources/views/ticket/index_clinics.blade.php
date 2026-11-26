@@ -460,33 +460,36 @@ $(function () {
                      style="object-fit:cover; border-radius:5px; cursor:pointer;">`;
     };
 
-    const renderActions = (id, type, row) => {
-        if (userRole === 'Maintenance') return '';
+const renderActions = (id, type, row) => {
+    if (userRole === 'Maintenance') return '';
 
-        if (row.status === 'Done') {
-            const resolvedName = users.find(u => u.id === row.resolved_by)?.name ?? '—';
-            return `<div class="text-success"><small>Resolved by ${esc(resolvedName)}</small></div>`;
-        }
+    if (row.status === 'Done') {
+        const resolvedName = users.find(u => u.id === row.resolved_by)?.name ?? '—';
+        return `<div class="text-success"><small>Resolved by ${esc(resolvedName)}</small></div>`;
+    }
 
-        if (userRole === 'fdo') {
-            if (row.status !== 'For Approval') return '';
+    const canEditDelete = ['fdo', 'superadmin'].includes(userRole);
+    if (!canEditDelete) return '';
 
-            const assignedUserName = row.assignees?.[0]?.name ?? '';
-            return `
-                <button class="btn btn-sm btn-success updateStatusBtn"
-                        data-id="${id}"
-                        data-status="Done"
-                        data-assigned-user="${esc(assignedUserName)}">
-                    Done
-                </button>`;
-        }
+    let doneButton = '';
+    if (userRole === 'fdo' && row.status === 'For Approval') {
+        const assignedUserName = row.assignees?.[0]?.name ?? '';
+        doneButton = `
+            <button class="btn btn-sm btn-success updateStatusBtn"
+                    data-id="${id}"
+                    data-status="Done"
+                    data-assigned-user="${esc(assignedUserName)}">
+                Done
+            </button>`;
+    }
 
-        return `
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-info openEditModal" data-id="${id}">Edit</button>
-                <button class="btn btn-sm btn-danger deleteTicket" data-id="${id}">Delete</button>
-            </div>`;
-    };
+    return `
+        <div class="d-flex gap-2">
+            ${doneButton}
+            <button class="btn btn-sm btn-info openEditModal" data-id="${id}">Edit</button>
+            <button class="btn btn-sm btn-danger deleteTicket" data-id="${id}">Delete</button>
+        </div>`;
+};
 
     /* ------------------------------------------------------------------
      * DataTable

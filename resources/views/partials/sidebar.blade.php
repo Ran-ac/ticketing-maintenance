@@ -51,7 +51,7 @@
                             $user = auth()->user()->loadMissing('ticketClinic');
                             $company = strtolower(trim((string) optional($user->ticketClinic)->company));
 
-                            $hasFullAccess = in_array($user->role, ['superadmin', 'head']);
+                            $hasFullAccess = in_array($user->role, ['superadmin', 'Admin']);
 
                             $clinicCompanies = ['gaoc', 'novodental'];
                             $officeCompanies = ['samurai', 'specialign', 'gti'];

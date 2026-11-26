@@ -77,7 +77,8 @@
             <label for="role" class="form-label">Role</label>
             <select class="form-select" name="role" id="role">
                 <option value="">Please Select role</option>
-                <option value="purchasing">Purchasing</option>
+                <option value="Admin">Admin</option>
+                <option value="Purchasing">Purchasing</option>
                 <option value="Maintenance">Maintenance</option>
                 <option value="staff">Staff</option>
                 <option value="fdo">FDO</option>
